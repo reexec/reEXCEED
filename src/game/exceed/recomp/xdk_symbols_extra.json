@@ -1,4 +1,11 @@
 {
-  "comment": "XDK functions XbSymbolDatabase does not identify in this build, named by reading the lifted library (docs/analysis/exceed-xbe-overview.md). Each entry: {\"library\", \"name\", \"address\": \"0x...\", \"kind\": \"function\"}. None yet.",
-  "symbols": []
+  "comment": "XDK functions XbSymbolDatabase does not identify in this build, named by reading the lifted library (docs/analysis/exceed-xbe-overview.md). Each entry: {\"library\", \"name\", \"address\": \"0x...\", \"kind\": \"function\"}. D3DDevice_ApplyStateBlock(DWORD Token), stdcall 4 bytes: reads the block (records from +0x3C) and replays it through SetTexture, SetPixelShader, SetVertexShader, SetViewport and the other public setters; called with the token CreateStateBlock returned (the title's 0x0004EC31).",
+  "symbols": [
+    {
+      "library": "D3D8LTCG",
+      "name": "D3DDevice_ApplyStateBlock",
+      "address": "0x00174BED",
+      "kind": "function"
+    }
+  ]
 }

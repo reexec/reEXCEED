@@ -36,9 +36,15 @@ struct XdkInternal
 // D3D8LTCG's static device: the lifted Direct3D_CreateDevice
 // (0x00177A70) stores 0x001835E0 in g_pDevice ([0x00185A88]), and inlined
 // code also writes its push buffer through 0x001835E0 directly, so the HLE
-// device must be this object (rexbox design i051).
-constexpr std::array<XdkInternal, 1> kXdkInternals = {{
+// device must be this object (rexbox design i051). "D3D_InitializeDeviceState"
+// is the device's default-state routine the lifted CreateDevice's init
+// (0x0017A3D0) calls: identity transforms through SetTransform (the matrix at
+// 0x00181E18), then every render state from the default table at 0x001825E4
+// through SetRenderState_Simple or the complex setters' table
+// (docs/analysis/exceed-xbe-overview.md section 9).
+constexpr std::array<XdkInternal, 2> kXdkInternals = {{
     {"D3D_g_Device", 0x001835E0},
+    {"D3D_InitializeDeviceState", 0x0017A1E0},
 }};
 
 bool Registered(const XbeVariant& variant)
