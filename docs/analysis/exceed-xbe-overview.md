@@ -97,7 +97,13 @@
 * **확인됨**: `CDirectSoundStream` vtable(`0x00190470`): AddRef, Release, GetInfo, GetStatus, Process, Discontinuity, Flush, 소멸자. 콜백은 `(stream context, packet context, status)` stdcall이며 둘 다 0이면 컨텍스트 `+8`을 늘린다.
 * **확인됨**: XACT 엔진(`XACTENG` 섹션, 식별되지 않음)의 시간 함수 `0016F12A`는 IRQL을 올리고 APU 레지스터 `0xFE80200C`를 읽어(48 kHz 전역 샘플 카운터로 **추정**) 엔진 `+0x144`(직전 값), `+0x148`(64비트 누계)을 갱신하고 `누계 × 10000 / 48000 × 1000`(100 ns)을 돌려준다. XACT에서 하드웨어를 직접 만지는 곳은 이 함수뿐이다(상수 주소 기준).
 
-## 12. 미해결 질문
+## 12. D3D8 렌더 경로 (XDK 5849)
+
+* **확인됨**: 렌더 상태 배치는 simple 0~91(0~81은 4134의 메서드, 82 `0x1D78`, 83 `0x147C`, 84~91 자리 채움, 메서드 표 `0x001B63B0`), deferred 92~135(44개, 기본값 표 `0x001825E4`), complex 136~165(30개, setter 표 `0x00182038`, `SampleAlpha`가 인덱스 22). 기본 상태 루틴 `0x0017A1E0`이 슬롯 57~165를 돈다.
+* **확인됨**: 디바이스의 변환 배열은 `g_pDevice + 0xC60 + State × 64`(State: View 0, Projection 1, Texture 2~5, World 6~9), 더티 비트 표 `0x00181E58`, 더티 워드 `[0x00185A90]`. 게임 코드는 World를 인라인으로 쓴다(`0x00077390`).
+* **확인됨**: 2D는 768×576 원점 중심 정사영(`1/384`, `1/288`)과 World 이동(−320, −240)으로 그린다. 동영상(XMV)은 640×480 선형 YUY2(`0x24`) 텍스처의 사각형이고, 둘레는 검은 사각형으로 덮는다. 포그를 켠 채 specular 없는 FVF `0x152`로 그린다.
+
+## 13. 미해결 질문
 
 * 물리 주소 창(`| 0x80000000`)을 타이틀이 쓰는지. 앱은 reCT3처럼 켜 두었다(**미확정**).
 * WMA·XMV 디코딩의 CPU 비용과 DSOUND 스트림 형식.
@@ -158,3 +164,9 @@ The table above applies: the North America build (`exceed_us`), region `0x000000
 
 * **Confirmed (network)**: the title's network init (`00080E70`) returns `E_FAIL` when `XNetStartup` (`0012D051`) returns nonzero, and its caller skips XOnline's start-up (`0010D9B7`) on a negative result; the lifted XNET programs the NIC's MMIO (`0xFEF00000`) after `KeInitializeInterrupt` (vector 52). rexbox #53 fails `XNetStartup` so the offline path runs.
 * **Confirmed (sound)**: at boot one PCM stream (2 ch, 44.1 kHz, 16 bit, at most 43 packets, callback `0007E9C0`) and 18 Xbox ADPCM effect buffers (mono and stereo, 44.1 kHz) are created. The `CDirectSoundStream` vtable (`0x00190470`) is AddRef, Release, GetInfo, GetStatus, Process, Discontinuity, Flush and the destructor; the callback is `(stream context, packet context, status)` stdcall and counts completions at its context `+8` when both are 0. XACT's time function `0016F12A` (the `XACTENG` section, unidentified) raises the IRQL, reads the APU register `0xFE80200C` (the 48 kHz global sample counter, **inferred**), updates the engine's `+0x144` (last value) and `+0x148` (64-bit total) and returns `total x 10000 / 48000 x 1000` (100 ns); it is XACT's only direct hardware access (by constant address).
+
+## 12. The D3D8 render path (XDK 5849)
+
+* **Confirmed**: the render-state layout is simple 0..91 (0..81 with 4134's methods, 82 `0x1D78`, 83 `0x147C`, 84..91 filler; method table `0x001B63B0`), deferred 92..135 (44; default table `0x001825E4`) and complex 136..165 (30; setter table `0x00182038`, `SampleAlpha` at index 22); the default-state routine `0x0017A1E0` walks slots 57..165.
+* **Confirmed**: the device's transform array is `g_pDevice + 0xC60 + State x 64` (View 0, Projection 1, Texture 2..5, World 6..9), with the dirty-bit table `0x00181E58` and the dirty word `[0x00185A90]`; game code writes World inline (`0x00077390`).
+* **Confirmed**: 2D is drawn through a 768x576 origin-centred orthographic projection (`1/384`, `1/288`) with a World translation of (−320, −240); the movie (XMV) is a quad of a 640x480 linear YUY2 (`0x24`) texture with black quads over the borders, drawn with fog on and FVF `0x152`, which has no specular.

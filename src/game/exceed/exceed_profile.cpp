@@ -42,9 +42,14 @@ struct XdkInternal
 // 0x00181E18), then every render state from the default table at 0x001825E4
 // through SetRenderState_Simple or the complex setters' table
 // (docs/analysis/exceed-xbe-overview.md section 9).
-constexpr std::array<XdkInternal, 2> kXdkInternals = {{
+// "D3DDevice__m_Transform_OFFSET" is an offset, like the identified
+// D3DDevice__m_*_OFFSET variables: the lifted SetTransform (0x001732A0) copies
+// the matrix to g_pDevice + 0xC60 + State x 64, and inlined game code does the
+// same (0x00077390 writes the world matrix at + 0xDE0, State 6).
+constexpr std::array<XdkInternal, 3> kXdkInternals = {{
     {"D3D_g_Device", 0x001835E0},
     {"D3D_InitializeDeviceState", 0x0017A1E0},
+    {"D3DDevice__m_Transform_OFFSET", 0x00000C60},
 }};
 
 bool Registered(const XbeVariant& variant)
