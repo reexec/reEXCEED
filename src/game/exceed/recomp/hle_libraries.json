@@ -1,5 +1,5 @@
 {
-  "comment": "XDK functions replaced by HLE exports. 'libraries' selects every identified function of a library; 'functions' selects single functions of libraries whose other functions stay lifted. regenerate.py generates an override for each (rexbox: include/rexbox/recomp/recomp_hle_entry.h). Initial choice before the XBE is lifted, as in reCT3 (docs/design/20261103-i001-project-bootstrap.md section 5): every D3D8 and DSOUND function goes to the HLE, so an unimplemented one stops the run and names itself instead of running lifted hardware code; XAPI's device and input functions are the set reJSRF and reCT3 use. 'lifted' names functions of those libraries that stay lifted, carried from reCT3 (XDK 4531) and still to be re-checked on this build's XDK 5849 (inferred): Get2DSurfaceDesc is a pure internal; XAudioDownloadEffectsImage loads the effects image file through XAPI and the kernel and then calls CDirectSound_DownloadEffectsImage, which has the HLE; DirectSoundEnterCriticalSection only enters the library's global critical section. The middleware this build links (WMADEC, XMV, XACTENG, XONLINE, XNET) stays lifted: it is CPU code that reaches the hardware only through D3D8, DSOUND and the kernel (docs/analysis/exceed-xbe-overview.md).",
+  "comment": "XDK functions replaced by HLE exports. 'libraries' selects every identified function of a library; 'functions' selects single functions of libraries whose other functions stay lifted. regenerate.py generates an override for each (rexbox: include/rexbox/recomp/recomp_hle_entry.h). Initial choice before the XBE is lifted, as in reCT3 (docs/design/20261103-i001-project-bootstrap.md section 5): every D3D8 and DSOUND function goes to the HLE, so an unimplemented one stops the run and names itself instead of running lifted hardware code; XAPI's device and input functions are the set reJSRF and reCT3 use. 'lifted' names functions of those libraries that stay lifted, carried from reCT3 (XDK 4531) and still to be re-checked on this build's XDK 5849 (inferred): Get2DSurfaceDesc is a pure internal; XAudioDownloadEffectsImage loads the effects image file through XAPI and the kernel and then calls CDirectSound_DownloadEffectsImage, which has the HLE; DirectSoundEnterCriticalSection only enters the library's global critical section. The middleware this build links (WMADEC, XMV, XACTENG, XONLINE, XNET) stays lifted: it is CPU code that reaches the hardware only through D3D8, DSOUND and the kernel (docs/analysis/exceed-xbe-overview.md). XNetStartup and XNetGetEthernetLinkStatus go to rexbox's offline network (rexbox #53): the host has no Xbox network, and the title's own network init (0x00080E70) takes its failure path instead of the lifted XNET programming the NIC (docs/analysis/exceed-xbe-overview.md section 10). D3D_ClearStateBlockFlags stays lifted (an internal flag clear). State blocks go to the HLE (rexbox #57): the lifted CreateStateBlock captured the device's internal fields, which the HLE device leaves zero, and the lifted ApplyStateBlock then restored a null vertex shader and a 0x0 viewport (docs/analysis/exceed-xbe-overview.md section 9); ApplyStateBlock is named in xdk_symbols_extra.json. XAudioCreatePcmFormat and XAudioCreateAdpcmFormat stay lifted: they only fill a WAVEFORMATEX. D3DDevice_SetVertexDataColor stays lifted (it only writes NV2A methods into the device push buffer, rexbox #51); the 3D calculator (IDirectSound3DCalculator_*, CDirectSound3DCalculator_*) stays lifted as computation XACT asks for (inferred: no hardware access by constant address).",
   "libraries": [
     "D3D8",
     "D3D8LTCG",
@@ -8,52 +8,29 @@
   "lifted": [
     "Get2DSurfaceDesc",
     "XAudioDownloadEffectsImage",
-    "DirectSoundEnterCriticalSection"
+    "DirectSoundEnterCriticalSection",
+    "D3D_ClearStateBlockFlags",
+    "XAudioCreatePcmFormat",
+    "XAudioCreateAdpcmFormat",
+    "D3DDevice_SetVertexDataColor",
+    "IDirectSound3DCalculator_Calculate3D",
+    "IDirectSound3DCalculator_GetVoiceData",
+    "CDirectSound3DCalculator_Calculate3D",
+    "CDirectSound3DCalculator_GetVoiceData"
   ],
   "functions": [
-    {
-      "library": "XAPILIB",
-      "name": "XInitDevices"
-    },
-    {
-      "library": "XAPILIB",
-      "name": "XGetDeviceChanges"
-    },
-    {
-      "library": "XAPILIB",
-      "name": "XGetDevices"
-    },
-    {
-      "library": "XAPILIB",
-      "name": "XInputOpen"
-    },
-    {
-      "library": "XAPILIB",
-      "name": "XInputClose"
-    },
-    {
-      "library": "XAPILIB",
-      "name": "XInputGetCapabilities"
-    },
-    {
-      "library": "XAPILIB",
-      "name": "XInputGetState"
-    },
-    {
-      "library": "XAPILIB",
-      "name": "XInputSetState"
-    },
-    {
-      "library": "XAPILIB",
-      "name": "XInputPoll"
-    },
-    {
-      "library": "XAPILIB",
-      "name": "XMountMUA"
-    },
-    {
-      "library": "XAPILIB",
-      "name": "XUnmountMU"
-    }
+    {"library": "XAPILIB", "name": "XInitDevices"},
+    {"library": "XAPILIB", "name": "XGetDeviceChanges"},
+    {"library": "XAPILIB", "name": "XGetDevices"},
+    {"library": "XAPILIB", "name": "XInputOpen"},
+    {"library": "XAPILIB", "name": "XInputClose"},
+    {"library": "XAPILIB", "name": "XInputGetCapabilities"},
+    {"library": "XAPILIB", "name": "XInputGetState"},
+    {"library": "XAPILIB", "name": "XInputSetState"},
+    {"library": "XAPILIB", "name": "XInputPoll"},
+    {"library": "XAPILIB", "name": "XMountMUA"},
+    {"library": "XAPILIB", "name": "XUnmountMU"},
+    {"library": "XONLINES", "name": "XNetStartup"},
+    {"library": "XONLINES", "name": "XNetGetEthernetLinkStatus"}
   ]
 }

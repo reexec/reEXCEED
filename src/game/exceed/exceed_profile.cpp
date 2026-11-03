@@ -32,10 +32,25 @@ struct XdkInternal
 };
 
 // XDK internals XbSymbolDatabase does not name, found by reading the lifted
-// library (reCT3 binds "D3D_InitializeDeviceState" and "D3D_g_Stream" this
-// way). None are known for this build yet; they are added once the lifted
-// D3D8 library has been read (docs/analysis/exceed-xbe-overview.md).
-constexpr std::array<XdkInternal, 0> kXdkInternals = {};
+// library (docs/analysis/exceed-xbe-overview.md section 9). "D3D_g_Device" is
+// D3D8LTCG's static device: the lifted Direct3D_CreateDevice
+// (0x00177A70) stores 0x001835E0 in g_pDevice ([0x00185A88]), and inlined
+// code also writes its push buffer through 0x001835E0 directly, so the HLE
+// device must be this object (rexbox design i051). "D3D_InitializeDeviceState"
+// is the device's default-state routine the lifted CreateDevice's init
+// (0x0017A3D0) calls: identity transforms through SetTransform (the matrix at
+// 0x00181E18), then every render state from the default table at 0x001825E4
+// through SetRenderState_Simple or the complex setters' table
+// (docs/analysis/exceed-xbe-overview.md section 9).
+// "D3DDevice__m_Transform_OFFSET" is an offset, like the identified
+// D3DDevice__m_*_OFFSET variables: the lifted SetTransform (0x001732A0) copies
+// the matrix to g_pDevice + 0xC60 + State x 64, and inlined game code does the
+// same (0x00077390 writes the world matrix at + 0xDE0, State 6).
+constexpr std::array<XdkInternal, 3> kXdkInternals = {{
+    {"D3D_g_Device", 0x001835E0},
+    {"D3D_InitializeDeviceState", 0x0017A1E0},
+    {"D3DDevice__m_Transform_OFFSET", 0x00000C60},
+}};
 
 bool Registered(const XbeVariant& variant)
 {

@@ -331,6 +331,8 @@ int main(int argc, char** argv)
     rexbox::hle::d3d8::SetDisplayDefaults(display_defaults);
     // The title's own culling follows the widened picture (reJSRF #97).
     reexceed_host_horizontal_view_scale = &rexbox_d3d8_horizontal_view_scale;
+    // XACT's time base: the APU sample counter it reads directly (rexbox #55).
+    reexceed_host_apu_sample_count = &rexbox_dsound_apu_sample_count;
     rexbox::platform::SetRumbleStrength(settings.vibration ? settings.vibration_strength : 0);
     reexceed::BuildInfo build_info;
     build_info.version = REEXCEED_VERSION;
@@ -382,6 +384,8 @@ int main(int argc, char** argv)
     // REEXCEED_HDD_ROOT names another place.
     rexbox::hle::kernel::KernelConfig kernel_config;
     kernel_config.game_directory = game_directory;
+    // XeImageFileName names the XBE as found on the disc (DEFAULT.XBE).
+    kernel_config.image_file_name = xbe_path.filename().string();
     const char* hdd_root = std::getenv("REEXCEED_HDD_ROOT");
     kernel_config.hdd_root = hdd_root != nullptr ? std::filesystem::path(hdd_root)
                                                  : std::filesystem::current_path() / "hdd";
