@@ -32,10 +32,14 @@ struct XdkInternal
 };
 
 // XDK internals XbSymbolDatabase does not name, found by reading the lifted
-// library (reCT3 binds "D3D_InitializeDeviceState" and "D3D_g_Stream" this
-// way). None are known for this build yet; they are added once the lifted
-// D3D8 library has been read (docs/analysis/exceed-xbe-overview.md).
-constexpr std::array<XdkInternal, 0> kXdkInternals = {};
+// library (docs/analysis/exceed-xbe-overview.md section 9). "D3D_g_Device" is
+// D3D8LTCG's static device: the lifted Direct3D_CreateDevice
+// (0x00177A70) stores 0x001835E0 in g_pDevice ([0x00185A88]), and inlined
+// code also writes its push buffer through 0x001835E0 directly, so the HLE
+// device must be this object (rexbox design i051).
+constexpr std::array<XdkInternal, 1> kXdkInternals = {{
+    {"D3D_g_Device", 0x001835E0},
+}};
 
 bool Registered(const XbeVariant& variant)
 {
