@@ -1,0 +1,6 @@
+[submodule "third_party/rexbox"]
+	path = third_party/rexbox
+	url = https://github.com/reexec/rexbox
+[submodule "third_party/xboxrecomp"]
+	path = third_party/xboxrecomp
+	url = https://github.com/sp00nznet/xboxrecomp

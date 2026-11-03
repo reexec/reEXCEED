@@ -1,0 +1,45 @@
+# Game data. Nothing from the disc -- executable, assets, or the ISO -- is ever
+# committed. Users supply their own dump (see docs/guides/).
+roms/
+*.iso
+*.xbe
+*.xiso
+
+# Code mechanically generated from the game's executable (the lifted C). It is
+# derived from copyrighted code, so it is rebuilt locally and never committed.
+gen/
+src/game/exceed/recomp/generated/
+
+# Build trees and local tool installs.
+build/
+out/
+tools/downloads/
+
+# Reference checkouts fetched for study only.
+third_party/refs/
+
+# Per-user state written at run time.
+reexceed.ini
+cfg/
+saves/
+hdd/
+cache/
+
+# Local run artifacts and logs.
+*.log
+run*.txt
+reexceed_*.txt
+
+# IDE and OS clutter.
+.vs/
+.vscode/
+*.user
+*.suo
+*.tmp
+*.obj
+__pycache__/
+*.pyc
+
+# Diagnostic captures and frame dumps (pictures of the game)
+capture_*
+frame_*.bmp

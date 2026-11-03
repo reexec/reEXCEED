@@ -1,0 +1,4 @@
+{
+  "comment": "XDK functions XbSymbolDatabase does not identify in this build, named by reading the lifted library (docs/analysis/exceed-xbe-overview.md). Each entry: {\"library\", \"name\", \"address\": \"0x...\", \"kind\": \"function\"}. None yet.",
+  "symbols": []
+}
