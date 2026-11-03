@@ -382,6 +382,8 @@ int main(int argc, char** argv)
     // REEXCEED_HDD_ROOT names another place.
     rexbox::hle::kernel::KernelConfig kernel_config;
     kernel_config.game_directory = game_directory;
+    // XeImageFileName names the XBE as found on the disc (DEFAULT.XBE).
+    kernel_config.image_file_name = xbe_path.filename().string();
     const char* hdd_root = std::getenv("REEXCEED_HDD_ROOT");
     kernel_config.hdd_root = hdd_root != nullptr ? std::filesystem::path(hdd_root)
                                                  : std::filesystem::current_path() / "hdd";
