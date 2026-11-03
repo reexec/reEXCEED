@@ -19,7 +19,7 @@ flowchart TD
     RT --> PLAT["rexbox platform: win32, linux (SDL3 + OpenGL)"]
 ```
 
-* **rexbox**(`third_party/rexbox`, submodule, v0.0.21)는 타이틀에 의존하지 않는 재사용 가능한 Xbox 런타임입니다. reJSRF에서 만들어져 분리되었고, reJSRF·reCT3·reEXCEED가 공유합니다.
+* **rexbox**(`third_party/rexbox`, submodule, v0.0.22)는 타이틀에 의존하지 않는 재사용 가능한 Xbox 런타임입니다. reJSRF에서 만들어져 분리되었고, reJSRF·reCT3·reEXCEED가 공유합니다.
 * **game/exceed**는 원본 x86 코드를 C로 옮긴 재컴파일 코드(로컬 생성)와, 그것을 함수 단위로 대체하는 디컴파일 코드, 타이틀 프로파일을 담습니다.
 * **xboxrecomp**(`third_party/xboxrecomp`, submodule)는 upstream 최신 릴리스 v0.16.0입니다. 재컴파일 파이프라인과 lifter ABI 헤더가 여기서 옵니다.
 * 자세한 내용: [ARCHITECTURE.md](ARCHITECTURE.md), [설계 i001](docs/design/20261103-i001-project-bootstrap.md), [프로젝트 헌장](docs/PROJECT_CHARTER.md), [XBE 분석](docs/analysis/exceed-xbe-overview.md)
@@ -88,7 +88,7 @@ This repository does not and will not contain the game's executable, its assets,
 
 ## Structure
 
-See the diagram above. **rexbox** (`third_party/rexbox`, a submodule, v0.0.21) is the reusable, title-agnostic Xbox runtime, built in reJSRF and split out for reJSRF, reCT3 and reEXCEED; **game/exceed** holds the recompiled code (the original x86 lifted to C, generated locally), the decompiled code that replaces it function by function, and the title profile; **xboxrecomp** (`third_party/xboxrecomp`, a submodule) is upstream's latest release, v0.16.0, the source of the recompilation pipeline and the lifter ABI header. More: [ARCHITECTURE.md](ARCHITECTURE.md), [design i001](docs/design/20261103-i001-project-bootstrap.md), [project charter](docs/PROJECT_CHARTER.md), [XBE analysis](docs/analysis/exceed-xbe-overview.md).
+See the diagram above. **rexbox** (`third_party/rexbox`, a submodule, v0.0.22) is the reusable, title-agnostic Xbox runtime, built in reJSRF and split out for reJSRF, reCT3 and reEXCEED; **game/exceed** holds the recompiled code (the original x86 lifted to C, generated locally), the decompiled code that replaces it function by function, and the title profile; **xboxrecomp** (`third_party/xboxrecomp`, a submodule) is upstream's latest release, v0.16.0, the source of the recompilation pipeline and the lifter ABI header. More: [ARCHITECTURE.md](ARCHITECTURE.md), [design i001](docs/design/20261103-i001-project-bootstrap.md), [project charter](docs/PROJECT_CHARTER.md), [XBE analysis](docs/analysis/exceed-xbe-overview.md).
 
 ## Build (Win32)
 
