@@ -331,6 +331,8 @@ int main(int argc, char** argv)
     rexbox::hle::d3d8::SetDisplayDefaults(display_defaults);
     // The title's own culling follows the widened picture (reJSRF #97).
     reexceed_host_horizontal_view_scale = &rexbox_d3d8_horizontal_view_scale;
+    // XACT's time base: the APU sample counter it reads directly (rexbox #55).
+    reexceed_host_apu_sample_count = &rexbox_dsound_apu_sample_count;
     rexbox::platform::SetRumbleStrength(settings.vibration ? settings.vibration_strength : 0);
     reexceed::BuildInfo build_info;
     build_info.version = REEXCEED_VERSION;

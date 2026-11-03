@@ -87,7 +87,17 @@
 * **확인됨**: `D3D_MakeRequestedSpace`(`00179470`)는 D3D 라이브러리 함수 다수와 **게임 코드 함수 7개**(`0002AA40`, `0003B380`, `0003BA50`, `0003BDC0`, `000765E0`, `0007F1D0`, `0007FFA0`)가 부른다. 게임 코드는 인라인된 D3D 호출로 NV2A 메서드 헤더와 값을 `pPut`에 직접 쓰고 전진시킨다(예: `000765E0`의 `0x0004030C`, `0x00041D78`). 식별되지 않은 D3D 내부 함수(`00176C20` 등)도 같다.
 * **추정**: API 경계 HLE만으로는 이 명령이 GPU 상태에 반영되지 않는다. 디바이스 푸시 버퍼의 NV2A 메서드를 해석하는 경로가 필요하다(rexbox의 `BeginPush`/`EndPush` 해석의 확장).
 
-## 10. 미해결 질문
+## 10. 네트워크 초기화
+
+* **확인됨**: 게임의 네트워크 초기화(`00080E70`)는 `XNetStartup`(`0012D051`)이 0이 아니면 `E_FAIL`을 돌려주고, 호출자는 음수면 XOnline 시작(`0010D9B7`)을 건너뛴다. lift된 XNET은 `KeInitializeInterrupt`(벡터 52) 뒤 NIC MMIO(`0xFEF00000`)를 프로그래밍한다. rexbox #53이 `XNetStartup`을 실패로 돌려 오프라인 경로를 탄다.
+
+## 11. 사운드: 스트림, XACT
+
+* **확인됨**: 부팅 중 PCM 스트림 하나(2 ch, 44.1 kHz, 16 bit, 최대 43 패킷, 콜백 `0007E9C0`)와 Xbox ADPCM 효과음 버퍼 18개(모노·스테레오 44.1 kHz)를 만든다.
+* **확인됨**: `CDirectSoundStream` vtable(`0x00190470`): AddRef, Release, GetInfo, GetStatus, Process, Discontinuity, Flush, 소멸자. 콜백은 `(stream context, packet context, status)` stdcall이며 둘 다 0이면 컨텍스트 `+8`을 늘린다.
+* **확인됨**: XACT 엔진(`XACTENG` 섹션, 식별되지 않음)의 시간 함수 `0016F12A`는 IRQL을 올리고 APU 레지스터 `0xFE80200C`를 읽어(48 kHz 전역 샘플 카운터로 **추정**) 엔진 `+0x144`(직전 값), `+0x148`(64비트 누계)을 갱신하고 `누계 × 10000 / 48000 × 1000`(100 ns)을 돌려준다. XACT에서 하드웨어를 직접 만지는 곳은 이 함수뿐이다(상수 주소 기준).
+
+## 12. 미해결 질문
 
 * 물리 주소 창(`| 0x80000000`)을 타이틀이 쓰는지. 앱은 reCT3처럼 켜 두었다(**미확정**).
 * WMA·XMV 디코딩의 CPU 비용과 DSOUND 스트림 형식.
@@ -143,3 +153,8 @@ The table above applies: the North America build (`exceed_us`), region `0x000000
 * **Confirmed (kernel dependence)**: `00087E76` picks a kernel-code address by `XboxHardwareInfo` (322) and `XboxKrnlVersion` (324) and patches four bytes of kernel code through `MmQueryAddressProtect`/`MmSetAddressProtect` and `cli`/`sti`; with rexbox's build 5838 the path is not taken. `00087E12` reads the kernel PE header (`e_lfanew` at `0x8001003C`), builds a code-segment descriptor (`0x00C09B00 | limit`) ending at the kernel's last section, and `0008A804` swaps it into GDT entry 1 (selector 8) with `sgdt` and `ljmp 8:...`, keeping the old one at `[0x00A93978]`/`[0x00A9397C]` for `0008A7E0` to restore only when nonzero. Under the HLE the physical window shows the title's own XBE header at `0x80010000`, so it faulted; `decomp/xapi_code_selector.c` makes it do nothing.
 * **Confirmed (`XeImageFileName`)**: XAPI (`0008723B`) resolves `\??\D:` and prefix-compares the running image's path from `XeImageFileName` (326, an `ANSI_STRING`) with it; rexbox v0.0.21 lacked the export (rexbox #49 adds `\Device\CdRom0\DEFAULT.XBE`).
 * **Confirmed (D3D8LTCG)**: 22 of the 104 D3D8LTCG functions are register-convention variants (listed in the Korean section); their parameter numbers count the LTCG function's reduced signature (rexbox design i050). The lifted `Direct3D_CreateDevice` uses the library's static device `0x001835E0` and stores its address at `[0x00185A88]`; the device's `+0` is the push-buffer write pointer (`pPut`). `D3D_MakeRequestedSpace` (`00179470`) is called by many D3D library functions and by **seven game functions** (`0002AA40`, `0003B380`, `0003BA50`, `0003BDC0`, `000765E0`, `0007F1D0`, `0007FFA0`), whose inlined D3D calls write NV2A method headers and values straight to `pPut` (in `000765E0`, `0x0004030C` and `0x00041D78`), as do unidentified D3D internals (`00176C20` and others). **Inferred**: API-level HLE alone does not carry these commands into the GPU state; the device push buffer's NV2A methods need to be interpreted (an extension of rexbox's `BeginPush`/`EndPush` interpreter).
+
+## 10–11. Network start-up and sound (issue #4)
+
+* **Confirmed (network)**: the title's network init (`00080E70`) returns `E_FAIL` when `XNetStartup` (`0012D051`) returns nonzero, and its caller skips XOnline's start-up (`0010D9B7`) on a negative result; the lifted XNET programs the NIC's MMIO (`0xFEF00000`) after `KeInitializeInterrupt` (vector 52). rexbox #53 fails `XNetStartup` so the offline path runs.
+* **Confirmed (sound)**: at boot one PCM stream (2 ch, 44.1 kHz, 16 bit, at most 43 packets, callback `0007E9C0`) and 18 Xbox ADPCM effect buffers (mono and stereo, 44.1 kHz) are created. The `CDirectSoundStream` vtable (`0x00190470`) is AddRef, Release, GetInfo, GetStatus, Process, Discontinuity, Flush and the destructor; the callback is `(stream context, packet context, status)` stdcall and counts completions at its context `+8` when both are 0. XACT's time function `0016F12A` (the `XACTENG` section, unidentified) raises the IRQL, reads the APU register `0xFE80200C` (the 48 kHz global sample counter, **inferred**), updates the engine's `+0x144` (last value) and `+0x148` (64-bit total) and returns `total x 10000 / 48000 x 1000` (100 ns); it is XACT's only direct hardware access (by constant address).

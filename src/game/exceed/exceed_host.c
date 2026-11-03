@@ -4,3 +4,4 @@
 #include "reexceed/exceed_host.h"
 
 float (*reexceed_host_horizontal_view_scale)(void) = 0;
+uint32_t (*reexceed_host_apu_sample_count)(void) = 0;
