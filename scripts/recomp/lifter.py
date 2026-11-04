@@ -104,10 +104,13 @@ def lifted_rets(gen_dir):
     return rets
 
 
-def run_step(name, xboxrecomp, args):
+def run_step(name, xboxrecomp, args, patched=False):
+    """Runs `python -m args...` in the checkout; `patched` applies this project's
+    temporary lifter fixes first (lifter_patches.py)."""
     print(f"=== {name}", flush=True)
     started = time.monotonic()
-    result = subprocess.run([sys.executable, "-m"] + [str(a) for a in args], cwd=xboxrecomp)
+    runner = [str(pathlib.Path(__file__).with_name("lifter_patches.py"))] if patched else ["-m"]
+    result = subprocess.run([sys.executable] + runner + [str(a) for a in args], cwd=xboxrecomp)
     if result.returncode != 0:
         sys.exit(f"{name} failed with exit code {result.returncode}")
     print(f"    {name}: {time.monotonic() - started:.1f}s", flush=True)
@@ -220,7 +223,7 @@ def run(argv=None, **defaults):
                                   "--disasm-dir", out / "disasm", "--func-id-dir", out / "func-id",
                                   "--abi-dir", out / "abi", "--gen-dir", gen_dir,
                                   "--output-dir", out / "recomp-summary",
-                                  "--exclude-manual", overrides])
+                                  "--exclude-manual", overrides], patched=True)
     # The overrides are compiled with the generated code they replace.
     shutil.copyfile(hle_overrides, gen_dir / "rexbox_hle_overrides.c")
 
