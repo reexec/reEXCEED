@@ -103,7 +103,12 @@
 * **확인됨**: 디바이스의 변환 배열은 `g_pDevice + 0xC60 + State × 64`(State: View 0, Projection 1, Texture 2~5, World 6~9), 더티 비트 표 `0x00181E58`, 더티 워드 `[0x00185A90]`. 게임 코드는 World를 인라인으로 쓴다(`0x00077390`).
 * **확인됨**: 2D는 768×576 원점 중심 정사영(`1/384`, `1/288`)과 World 이동(−320, −240)으로 그린다. 동영상(XMV)은 640×480 선형 YUY2(`0x24`) 텍스처의 사각형이고, 둘레는 검은 사각형으로 덮는다. 포그를 켠 채 specular 없는 FVF `0x152`로 그린다.
 
-## 13. 미해결 질문
+## 13. 부팅 BGA와 libpng (issue #6)
+
+* **확인됨**: 부팅 순서는 `BGA\ESRB.DAT`(ESRB 공지) → `81.DAT`(AM 로고) → `ML.DAT`(Andamiro·Mastiff) → `FREEVOLT.XMV` → `INTRO.XMV`다. DAT는 `RESPACK` 묶음이고, 그 안의 이미지는 libpng 1.2.5(`D3DX` 섹션, `png_handle_IHDR` `0x000E0737`)로 읽는다. 상태 객체 vtable은 ESRB가 `0x001B72A4`, 로고가 `0x001B7330`이다. BGA 핸들은 레이어 100개(`+0x14`)를 가지며 `sub_0006F560` → `sub_0006ED40`(키프레임 보간, ID3DXMatrixStack `[0x83FB28]`)으로 그린다. 텍스처 표는 `[0x1D1B44]`(항목 0x34바이트, 너비 `+0x32`, 높이 `+0x34`)다.
+* **확인됨**: 이 타이틀의 실제 코드에 있는 8비트 단일 피연산자 곱은 `0x000E08F8 imul bl`, `0x000E2D32 imul cl`, `0x000E5F67 mul cl`(libpng), `0x000F1F31 imul bl`(DSOUND)이다.
+
+## 14. 미해결 질문
 
 * 물리 주소 창(`| 0x80000000`)을 타이틀이 쓰는지. 앱은 reCT3처럼 켜 두었다(**미확정**).
 * WMA·XMV 디코딩의 CPU 비용과 DSOUND 스트림 형식.
@@ -170,3 +175,8 @@ The table above applies: the North America build (`exceed_us`), region `0x000000
 * **Confirmed**: the render-state layout is simple 0..91 (0..81 with 4134's methods, 82 `0x1D78`, 83 `0x147C`, 84..91 filler; method table `0x001B63B0`), deferred 92..135 (44; default table `0x001825E4`) and complex 136..165 (30; setter table `0x00182038`, `SampleAlpha` at index 22); the default-state routine `0x0017A1E0` walks slots 57..165.
 * **Confirmed**: the device's transform array is `g_pDevice + 0xC60 + State x 64` (View 0, Projection 1, Texture 2..5, World 6..9), with the dirty-bit table `0x00181E58` and the dirty word `[0x00185A90]`; game code writes World inline (`0x00077390`).
 * **Confirmed**: 2D is drawn through a 768x576 origin-centred orthographic projection (`1/384`, `1/288`) with a World translation of (−320, −240); the movie (XMV) is a quad of a 640x480 linear YUY2 (`0x24`) texture with black quads over the borders, drawn with fog on and FVF `0x152`, which has no specular.
+
+## 13. Boot BGA and libpng (issue #6)
+
+* **Confirmed**: the boot order is `BGA\ESRB.DAT` (the ESRB notice) → `81.DAT` (the AM logo) → `ML.DAT` (Andamiro and Mastiff) → `FREEVOLT.XMV` → `INTRO.XMV`. The DATs are `RESPACK` bundles whose images are read through libpng 1.2.5 (the `D3DX` section, `png_handle_IHDR` `0x000E0737`); the state objects' vtables are `0x001B72A4` (ESRB) and `0x001B7330` (logos); a BGA handle holds 100 layers (`+0x14`) drawn through `sub_0006F560` → `sub_0006ED40` (keyframe interpolation, the ID3DXMatrixStack `[0x83FB28]`); the texture table is `[0x1D1B44]` (0x34-byte entries, width `+0x32`, height `+0x34`).
+* **Confirmed**: the title's real code has four 8-bit one-operand products: `0x000E08F8 imul bl`, `0x000E2D32 imul cl` and `0x000E5F67 mul cl` (libpng), and `0x000F1F31 imul bl` (DSOUND).
