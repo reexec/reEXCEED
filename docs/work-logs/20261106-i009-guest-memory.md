@@ -19,7 +19,7 @@
 
 ## submodule
 
-* `third_party/rexbox`: rexbox 작업 브랜치 `i067-resource-memory`의 `a514e79`(#67 `2286b13`, #68 `ce95a96`, #69 `a514e79`). **임시 고정**이며, rexbox에서 머지되면 태그로 옮긴다.
+* `third_party/rexbox`: rexbox `v0.0.24`(`eec649c`, reexec/rexbox#70의 squash 머지). 브랜치에서의 커밋은 #67 `2286b13`, #68 `ce95a96`, #69 `a514e79`이었다.
 
 ## 검증
 
@@ -27,7 +27,11 @@
 |---|---|
 | Win32 x86 Debug, Release | 오류 0, 경고 0, CTest 7/7(두 구성) |
 | `reexceed roms`(창 표시, 오디오, 키보드, Enter 8번) | 본게임 BGA(프레임 5700), GAME OVER 영상(5900), 저장 뒤 SELECT MODE. 181초 동안 고갈과 멈춤 없음 |
-| 잠긴 곡 그림 | 키 입력 주입(방향키, 트리거 키)으로 곡 목록이 넘어가지 않아 확인하지 못했다. 텍스처 해제와 호스트 텍스처 정리가 함께 바뀌었으므로 사용자 확인이 필요하다 |
+| 사용자 확인(2026-11-06) | 본게임 배경(BGA), STAGE BREAK·GAME OVER 영상은 해결. 곡 선택의 잠긴 곡 그림(가운데 미리보기도 검정)과 음악은 그대로 |
+
+## 남은 것
+
+* 잠긴 곡 그림, 가운데 미리보기, 음악: 이 issue에서 이어서 본다.
 
 ---
 
@@ -47,9 +51,11 @@ Done:
 
 Also found, not fixed here: the UIX (Xbox Live UI, `d:\media\UIX.uix`) object `[obj+0x808]` is 0 when its close (`0x000C6705`) is called; `[recomp] indirect call to 8298BC05 is outside code` is its trace. This looks like the Live sign-in having failed for want of a network. With `REXBOX_TRACE_FILES` the slower I/O makes the same spot fault (`read at guest C2700008`).
 
-Submodule: `third_party/rexbox` is at `a514e79` on rexbox's task branch `i067-resource-memory` (#67 `2286b13`, #68 `ce95a96`, #69 `a514e79`). This is a **temporary pin**, to move to a tag once merged in rexbox.
+Submodule: `third_party/rexbox` is at rexbox `v0.0.24` (`eec649c`, the squash merge of reexec/rexbox#70); on the branch the commits were #67 `2286b13`, #68 `ce95a96` and #69 `a514e79`.
 
 Verification:
 - Win32 x86 Debug and Release: 0 errors and 0 warnings, CTest 7/7 in both.
 - `reexceed roms` (window shown, audio, keyboard, Enter eight times): the in-game BGA (frame 5700), the GAME OVER video (5900) and SELECT MODE after the save, with no exhaustion and no stop in 181 s.
-- Locked-song pictures: not checked. The injected keys (arrows, trigger keys) do not scroll the song list. Texture frees and host texture cleanup changed together, so this needs the user's check.
+- The user's check (2026-11-06): the in-game background (BGA) and the STAGE BREAK and GAME OVER videos are fixed. The locked-song pictures (the centre preview is black too) and the music are unchanged.
+
+Remaining: the locked-song pictures, the centre preview and the music, to be continued under this issue.

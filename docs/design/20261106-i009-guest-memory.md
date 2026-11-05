@@ -1,6 +1,6 @@
 # 설계: 곡 선택 그림, 본게임 BGA·음악, GAME OVER 영상 — 게스트 메모리 고갈 (issue #9)
 
-상태: **구현됨**(rexbox #67~#69). 작업 지시: [20261106-i009](../work-orders/20261106-i009-guest-memory.md) · 작업 로그: [20261106-i009](../work-logs/20261106-i009-guest-memory.md)
+상태: **일부 해결**(rexbox #67~#69: 본게임 BGA, STAGE BREAK·GAME OVER 영상). 곡 선택의 잠긴 곡 그림과 음악은 남았다(사용자 확인). 작업 지시: [20261106-i009](../work-orders/20261106-i009-guest-memory.md) · 작업 로그: [20261106-i009](../work-logs/20261106-i009-guest-memory.md)
 
 ## 1. 요구사항
 
@@ -31,7 +31,7 @@ v0.0.4 뒤 보고된 증상:
 
 # Design: song-select pictures, the in-game BGA and music, the game-over video — guest memory runs out (issue #9)
 
-Status: **implemented** (rexbox #67–#69). Work order: [20261106-i009](../work-orders/20261106-i009-guest-memory.md) · Work log: [20261106-i009](../work-logs/20261106-i009-guest-memory.md)
+Status: **partly fixed** (rexbox #67–#69: the in-game BGA, the STAGE BREAK and GAME OVER videos). The locked-song pictures and the music remain (the user's check). Work order: [20261106-i009](../work-orders/20261106-i009-guest-memory.md) · Work log: [20261106-i009](../work-logs/20261106-i009-guest-memory.md)
 
 **Requirement.** Reported after v0.0.4:
 1. Locked songs' pictures on the song select come out broken.
