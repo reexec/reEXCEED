@@ -46,10 +46,15 @@ struct XdkInternal
 // D3DDevice__m_*_OFFSET variables: the lifted SetTransform (0x001732A0) copies
 // the matrix to g_pDevice + 0xC60 + State x 64, and inlined game code does the
 // same (0x00077390 writes the world matrix at + 0xDE0, State 6).
-constexpr std::array<XdkInternal, 3> kXdkInternals = {{
+// "D3D_DestroyResource" is the library's D3D_DestroyResource_0__LTCG_edi1:
+// rexbox calls it when a resource the title made loses its last reference, so
+// the library body frees the header and data through XMemFree (rexbox #67;
+// inline texture creation at 0x00076D50 allocates them with XMemAlloc).
+constexpr std::array<XdkInternal, 4> kXdkInternals = {{
     {"D3D_g_Device", 0x001835E0},
     {"D3D_InitializeDeviceState", 0x0017A1E0},
     {"D3DDevice__m_Transform_OFFSET", 0x00000C60},
+    {"D3D_DestroyResource", 0x00177E60},
 }};
 
 bool Registered(const XbeVariant& variant)
