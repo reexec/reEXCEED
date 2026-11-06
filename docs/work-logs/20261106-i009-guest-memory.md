@@ -29,9 +29,18 @@
 | `reexceed roms`(창 표시, 오디오, 키보드, Enter 8번) | 본게임 BGA(프레임 5700), GAME OVER 영상(5900), 저장 뒤 SELECT MODE. 181초 동안 고갈과 멈춤 없음 |
 | 사용자 확인(2026-11-06) | 본게임 배경(BGA), STAGE BREAK·GAME OVER 영상은 해결. 곡 선택의 잠긴 곡 그림(가운데 미리보기도 검정)과 음악은 그대로 |
 
+## 이어서 (2026-11-07)
+
+* 잠긴 곡 그림과 가운데 미리보기:
+  * 사용자가 F9로 받은 프레임 캡처(`capture_5882`)에서, 잠긴 칸과 미리보기만 픽셀 셰이더 `0x04200360`을 썼다.
+  * 이 핸들은 타이틀이 lift된 라이브러리 코드로 만든 게스트 객체다. rexbox가 핸들을 알지 못해 그 그리기를 건너뛰고 있었다.
+  * xemu에서는 회색조 그림과 오른쪽 위 자물쇠로 나온다(사용자 제공 화면).
+  * rexbox [#73](https://github.com/reexec/rexbox/issues/73)(`9731739`, 작업 브랜치 `i073-guest-pixel-shader`)으로 고쳤다. 사용자가 xemu와 같게 나오는 것을 확인했다.
+* 음악: 자동 실행에서는 스테이지가 끝날 때 음악이 멈춰, 플레이 중 음악이 없는 경우와 구분할 수 없었다. 사용자도 다시 재현하지 못했다. 재현되면 `REXBOX_DSOUND_TRACE=1`, `REXBOX_AUDIO_DUMP`로 기록을 받아 이어서 본다.
+
 ## 남은 것
 
-* 잠긴 곡 그림, 가운데 미리보기, 음악: 이 issue에서 이어서 본다.
+* 음악(재현 대기).
 
 ---
 
@@ -58,4 +67,12 @@ Verification:
 - `reexceed roms` (window shown, audio, keyboard, Enter eight times): the in-game BGA (frame 5700), the GAME OVER video (5900) and SELECT MODE after the save, with no exhaustion and no stop in 181 s.
 - The user's check (2026-11-06): the in-game background (BGA) and the STAGE BREAK and GAME OVER videos are fixed. The locked-song pictures (the centre preview is black too) and the music are unchanged.
 
-Remaining: the locked-song pictures, the centre preview and the music, to be continued under this issue.
+Continued (2026-11-07):
+- The locked-song pictures and the centre preview:
+  - in the user's F9 frame capture (`capture_5882`), only the locked tile and the preview used the pixel shader `0x04200360`;
+  - that handle is a guest object the title's lifted library code created, and rexbox, not knowing it, skipped those draws;
+  - xemu shows a grey picture with the lock at the top right (the user's screenshot);
+  - fixed by rexbox [#73](https://github.com/reexec/rexbox/issues/73) (`9731739`, task branch `i073-guest-pixel-shader`), and the user confirmed it matches xemu.
+- The music: in automated runs it stops when the stage ends, which cannot be told apart from no music during play, and the user could not reproduce it again. When it reproduces, a `REXBOX_DSOUND_TRACE=1` and `REXBOX_AUDIO_DUMP` record will continue it.
+
+Remaining: the music (waiting for a reproduction).
