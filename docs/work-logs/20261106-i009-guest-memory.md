@@ -38,9 +38,9 @@
   * rexbox [#73](https://github.com/reexec/rexbox/issues/73)(rexbox `v0.0.25`, `56bc8a5`, reexec/rexbox#74의 squash 머지; 브랜치 커밋 `9731739`)로 고쳤다. submodule을 `v0.0.25`로 올렸다. 사용자가 xemu와 같게 나오는 것을 확인했다.
 * 음악: 자동 실행에서는 스테이지가 끝날 때 음악이 멈춰, 플레이 중 음악이 없는 경우와 구분할 수 없었다. 사용자도 다시 재현하지 못했다. 재현되면 `REXBOX_DSOUND_TRACE=1`, `REXBOX_AUDIO_DUMP`로 기록을 받아 이어서 본다.
 
-## 남은 것
+## 마무리 (2026-11-07)
 
-* 음악(재현 대기).
+* 음악은 재현되지 않아, 사용자 결정으로 이 issue를 닫는다. 다시 재현되면 이 issue를 다시 열고, `REXBOX_DSOUND_TRACE=1`과 `REXBOX_AUDIO_DUMP`(rexbox `v0.0.26`, #71·#72)로 기록을 받는다.
 
 ---
 
@@ -74,5 +74,7 @@ Continued (2026-11-07):
   - xemu shows a grey picture with the lock at the top right (the user's screenshot);
   - fixed by rexbox [#73](https://github.com/reexec/rexbox/issues/73) (rexbox `v0.0.25`, `56bc8a5`, the squash merge of reexec/rexbox#74; branch commit `9731739`), and the user confirmed it matches xemu; the submodule moved to `v0.0.25`.
 - The music: in automated runs it stops when the stage ends, which cannot be told apart from no music during play, and the user could not reproduce it again. When it reproduces, a `REXBOX_DSOUND_TRACE=1` and `REXBOX_AUDIO_DUMP` record will continue it.
+
+Closed (2026-11-07): the music has not reproduced, so this issue is closed at the user's decision. If it reproduces, the issue is reopened and recorded with `REXBOX_DSOUND_TRACE=1` and `REXBOX_AUDIO_DUMP` (rexbox `v0.0.26`, #71 and #72).
 
 Remaining: the music (waiting for a reproduction).
