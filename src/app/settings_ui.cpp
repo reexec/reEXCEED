@@ -1,5 +1,6 @@
 #include "settings_ui.h"
 
+#include "reexceed/exceed_host.h"
 #include "rexbox/hle/d3d8/d3d8_display.h"
 #include "rexbox/platform/display.h"
 #include "rexbox/platform/input.h"
@@ -312,6 +313,11 @@ void SettingsUi::DrawMenu()
                 DrawTab(&SettingsUi::DrawInputTab);
                 ImGui::EndTabItem();
             }
+            if (ImGui::BeginTabItem("Game"))
+            {
+                DrawTab(&SettingsUi::DrawGameTab);
+                ImGui::EndTabItem();
+            }
             ImGui::EndTabBar();
         }
     }
@@ -526,6 +532,18 @@ void SettingsUi::DrawGraphicsTab()
                           "picture shows stays where it is, and the HUD and 2D screens stay centered.\n"
                           "Objects near the edges may appear a little late (the game culls for 4:3).");
 
+    // docs/design/20261107-i014-full-size-picture.md
+    if (ImGui::Checkbox("Full-size picture", &settings_.full_size_picture))
+    {
+        reexceed_set_full_size_picture(settings_.full_size_picture ? 1 : 0);
+        Save();
+    }
+    ImGui::SameLine();
+    ImGui::TextDisabled("(?)");
+    ImGui::SetItemTooltip("On: the picture fills the window.\n"
+                          "Off: as on the console, the game shrinks it to 83%% with a black border\n"
+                          "to make room for a TV's overscan.");
+
     bool vsync = vsync_.expected;
     if (ImGui::Checkbox("VSync", &vsync))
     {
@@ -684,6 +702,32 @@ void SettingsUi::DrawInputTab()
     ImGui::SameLine();
     ImGui::TextDisabled("Rumbles the first controller for half a second.");
     ImGui::EndDisabled();
+}
+
+void SettingsUi::DrawGameTab()
+{
+    ImGui::SeparatorText("Unlocks");
+    if (ImGui::Checkbox("Unlock all songs, modes, and modifiers (temporary)", &settings_.unlock_all))
+    {
+        reexceed_set_unlock_all(settings_.unlock_all ? 1 : 0);
+        Save();
+    }
+    ImGui::SameLine();
+    ImGui::TextDisabled("(?)");
+    ImGui::SetItemTooltip("Temporarily unlocks all songs, charts, speed/note modifiers, and sub-modes\n"
+                          "in memory without overwriting or tainting your save file on disk.\n"
+                          "Turn this off at any time to return to your saved unlock progress.");
+
+    ImGui::SeparatorText("Gameplay");
+    if (ImGui::Checkbox("Autoplay", &settings_.autoplay))
+    {
+        reexceed_set_autoplay(settings_.autoplay ? 1 : 0);
+        Save();
+    }
+    ImGui::SameLine();
+    ImGui::TextDisabled("(?)");
+    ImGui::SetItemTooltip("Uses the game's built-in autoplay bot to hit every note with Perfect timing.\n"
+                          "Internet Ranking code generation and lifetime step counts are skipped while active.");
 }
 
 void SettingsUi::DrawStatsWindow()

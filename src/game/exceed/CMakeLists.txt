@@ -25,11 +25,14 @@ if(TARGET reexceed_recomp)
     # Decompiled sources include the generated declarations.
     target_include_directories(reexceed_game PRIVATE "${REEXCEED_RECOMP_GEN_DIR}")
     target_compile_definitions(reexceed_game PRIVATE REEXCEED_HAS_RECOMP=1)
-    if(MSVC AND REEXCEED_DECOMP_SOURCES)
-        # The lifter's header as its authors wrote it: its constant casts
-        # (C4310, upstream xboxrecomp v0.16.0's x87 helpers) are not ours to
-        # change; rexbox's ABI object turns the same warning off.
-        set_source_files_properties(${REEXCEED_DECOMP_SOURCES} PROPERTIES COMPILE_OPTIONS /wd4310)
+    if(MSVC)
+        target_compile_options(reexceed_recomp PRIVATE "$<$<CONFIG:Debug>:/Z7>")
+        if(REEXCEED_DECOMP_SOURCES)
+            # The lifter's header as its authors wrote it: its constant casts
+            # (C4310, upstream xboxrecomp v0.16.0's x87 helpers) are not ours to
+            # change; rexbox's ABI object turns the same warning off.
+            set_source_files_properties(${REEXCEED_DECOMP_SOURCES} PROPERTIES COMPILE_OPTIONS /wd4310)
+        endif()
     endif()
 elseif(REEXCEED_DECOMP_SOURCES)
     # Decompiled functions only make sense next to the code they replace.
