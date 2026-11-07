@@ -67,6 +67,7 @@ private:
     void DrawGraphicsTab();
     void DrawAntiAliasing();
     void DrawInputTab();
+    void DrawGameTab();
     void DrawStatsWindow();
 
     BuildInfo build_;

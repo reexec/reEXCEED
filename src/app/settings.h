@@ -18,6 +18,8 @@ struct Settings
     uint32_t aspect = 0;  // 0 4:3, 1 16:9, 2 21:9 (Hor+, reJSRF docs/design/20261018-i085-widescreen-horplus.md)
     bool vsync = true;  // adaptive vsync; false: off
     bool vblank_wait = true;  // false: the title is not paced by the virtual vertical blank (issue #95)
+    // false: the title's TV-overscan shrink (docs/design/20261107-i014-full-size-picture.md).
+    bool full_size_picture = true;
     // Anti-aliasing and filtering (reJSRF docs/design/20261017-i089-anti-aliasing.md).
     // MSAA and SMAA exclude each other; with both set, MSAA wins.
     uint32_t msaa = 0;        // 0 (off), 2, 4, 8, 16
@@ -26,6 +28,9 @@ struct Settings
     // [Input] (reJSRF docs/design/20261018-i094-gamepad-vibration.md).
     bool vibration = true;
     uint32_t vibration_strength = 100;  // percent, 10..100
+    // [Game] (docs/design/20261107-i013-unlock-all.md).
+    bool unlock_all = false;
+    bool autoplay = false;
     // The stats window's sections (shown while any is on) and where its
     // top-right corner sits, as fractions of the window (negative: the
     // default, top right).

@@ -133,12 +133,24 @@ Settings SettingsFile::Load()
             continue;
         }
         const size_t equals = line.find('=');
-        if (equals == std::string::npos || (section != "graphics" && section != "input"))
+        if (equals == std::string::npos || (section != "graphics" && section != "input" && section != "game"))
         {
             continue;
         }
         const std::string key = Lower(Trim(line.substr(0, equals)));
         const std::string value = Trim(line.substr(equals + 1));
+        if (section == "game")
+        {
+            if (key == "unlockall")
+            {
+                ParseBool(value, &settings.unlock_all);
+            }
+            else if (key == "autoplay")
+            {
+                ParseBool(value, &settings.autoplay);
+            }
+            continue;
+        }
         if (section == "input")
         {
             if (key == "vibration")
@@ -228,6 +240,10 @@ Settings SettingsFile::Load()
         {
             ParseBool(value, &settings.vblank_wait);
         }
+        else if (key == "fullsizepicture")
+        {
+            ParseBool(value, &settings.full_size_picture);
+        }
         else if (key == "showfpsoverlay" || key == "showfps")
         {
             ParseBool(value, &settings.show_fps);
@@ -275,6 +291,8 @@ bool SettingsFile::Save(const Settings& settings)
          << "VSync = " << flag(settings.vsync) << "\n"
          << "; VBlankWait: false lets the game run as fast as it draws (game speed follows).\n"
          << "VBlankWait = " << flag(settings.vblank_wait) << "\n"
+         << "; FullSizePicture: false keeps the game's TV-overscan shrink (the picture at 83% with a black border).\n"
+         << "FullSizePicture = " << flag(settings.full_size_picture) << "\n"
          << "; Msaa: 0, 2, 4, 8, 16. Smaa: off, 1x (not with Msaa). Anisotropy: 1, 2, 4, 8, 16.\n"
          << "Msaa = " << settings.msaa << "\n"
          << "Smaa = " << (settings.smaa == 1 ? "1x" : "off") << "\n"
@@ -291,7 +309,12 @@ bool SettingsFile::Save(const Settings& settings)
     text << "[Input]\n"
          << "; Vibration: gamepad rumble. VibrationStrength: 10..100 (percent).\n"
          << "Vibration = " << flag(settings.vibration) << "\n"
-         << "VibrationStrength = " << settings.vibration_strength << "\n";
+         << "VibrationStrength = " << settings.vibration_strength << "\n"
+         << "[Game]\n"
+         << "; UnlockAll: temporarily unlock all songs, charts, modifiers, and sub-modes without modifying the save file.\n"
+         << "UnlockAll = " << flag(settings.unlock_all) << "\n"
+         << "; Autoplay: let the built-in bot play every note with Perfect timing.\n"
+         << "Autoplay = " << flag(settings.autoplay) << "\n";
     if (WriteFile(path_, text.str()))
     {
         return true;

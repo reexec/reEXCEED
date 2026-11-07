@@ -25,3 +25,10 @@ The diagram in the Korean version applies: headers at `0x00010000`, `.text` at `
 ## 4. Start sequence and kernel structures
 
 * The entry point is `0x0008673A`; the start sequence is established by the lift and the first run (**unresolved**).
+
+## 5. Save data and unlock structures
+
+* The save buffer (`[0x0084865C]`, `0x5028` bytes) keeps the active profile in its first `0x2800` bytes and a dirty-check shadow copy in its second `0x2800` bytes; `sub_00072F10` writes to disk only when the two halves differ. → [exceed-xbe-overview §14](analysis/exceed-xbe-overview.md)
+* Song and chart lock flags live in `.data` at `0x001C5D48` (`0x50`-byte entries, `+0x40..+0x47`), synced from the save buffer (`+0x1373`, `+0x1773`) by `sub_000278A0` when entering Song Select and cleaned up by `sub_00033340` (vtable[3]) on exit.
+* Speed and note modifier unlock flags reside at save buffer `+0x1F73..+0x1F7D` (11 categories) and `+0x1F89..+0x1FBD` (sub-items), while the 11 sub-modes (`0..10`) are checked by `sub_00038D60` via `sub_00038CE0` to populate the mode menu (`+0x58`, `+0x5C`).
+* Built-in autoplay is controlled by `MEM8(play_ptr + 0x39D)` on the `"PLAY"` scene object (`[0x00825114]`, `play_ptr`), read each frame by `sub_00017530` to drive the autoplay bot `sub_0001E630`.
