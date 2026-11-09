@@ -57,8 +57,8 @@ build/linux-x64-release/src/app/reexceed roms
 |---|---|
 | Win32 x86 | Debug·Release 빌드(재컴파일 코드 없이), CTest 6/6. 북미판 XBE 식별과 로드 단계까지 |
 | Win64 | 예정 |
-| Linux x64 | 빌드(재컴파일 코드 없이), CTest 6/6, 로드 단계까지(WSL2 Ubuntu 24.04, GCC 13). CI에서도 빌드 |
-| Linux x86 | 빌드, CTest 6/6, 로드 단계까지(WSL2 Ubuntu 24.04) |
+| Linux x64 | 빌드, CTest 7/7, 실기(Ubuntu 26.04, GCC 15)의 Wayland에서 타이틀·어트랙트까지. X11은 [알려진 제한](docs/guides/linux-setup-and-build.md#8-알려진-제한-issue-16). CI에서도 빌드 |
+| Linux x86 | 빌드, CTest 7/7, 게임 로직은 어트랙트까지. NVIDIA Wayland에서 화면 없음, X11 크래시([알려진 제한](docs/guides/linux-setup-and-build.md#8-알려진-제한-issue-16)) |
 | Web (wasm32) | 예정 |
 | Android | 예정 |
 
@@ -100,7 +100,7 @@ See the commands above: with the game files under `roms/`, build `rexbox_xdk_sym
 
 ## Platform status
 
-Win32 x86 builds in Debug and Release (without recompiled code), CTest passes 6/6, and the app identifies the North America XBE and runs through the load stage; Linux x64 and x86 build (without recompiled code), pass CTest 6/6 and run through the load stage on WSL2 Ubuntu 24.04 with GCC 13, and x64 also builds in CI; Win64, the web (wasm32) and Android are planned.
+Win32 x86 builds in Debug and Release (without recompiled code), CTest passes 6/6, and the app identifies the North America XBE and runs through the load stage; Linux x64 builds, passes CTest 7/7, and runs through the title and attract demo on a Linux machine (Ubuntu 26.04, GCC 15) under Wayland, with X11 being a [known limitation](docs/guides/linux-setup-and-build.md#8-known-limitations-issue-16), and also builds in CI; Linux x86 builds, passes CTest 7/7, and runs game logic through the attract demo, with no display under NVIDIA Wayland and an X11 crash ([known limitations](docs/guides/linux-setup-and-build.md#8-known-limitations-issue-16)); Win64, the web (wasm32) and Android are planned.
 
 ## Contributing and working rules
 
