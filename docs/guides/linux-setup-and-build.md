@@ -2,7 +2,7 @@
 
 근거: [설계 i001](../design/20261103-i001-project-bootstrap.md), reCT3의 [설계 i025](https://github.com/reexec/reCT3/blob/main/docs/design/20261025-i025-linux-build.md)와 [작업 로그 i025](https://github.com/reexec/reCT3/blob/main/docs/work-logs/20261025-i025-linux-build.md), rexbox의 [Linux 가이드](../../third_party/rexbox/docs/guides/linux-setup-and-build.md)
 
-Linux x64와 x86(-m32)에서 재컴파일 코드를 생성하고, 게임을 빌드하고 실행한다. 절차는 reCT3에서 Linux 실기(Ubuntu 26.04)와 WSL2(Ubuntu 24.04)로 확인한 것을 그대로 가져왔다. reEXCEED에서는 WSL2(Ubuntu 24.04, GCC 13)에서 x64·x86 빌드, CTest, 앱의 로드 단계(재컴파일 코드 없이)를 확인했다. 게임의 생성·실행 확인은 부팅 작업 이후에 한다.
+Linux x64와 x86(-m32)에서 재컴파일 코드를 생성하고, 게임을 빌드하고 실행한다. 절차는 reCT3에서 가져왔으며, reEXCEED에서는 Linux 실기(Ubuntu 26.04.1, GCC 15.2, CMake 4.2.3, NVIDIA RTX 4090 / 드라이버 595.99.02)에서 생성(약 5분), x64·x86 Release 빌드(경고 0), CTest 7/7, x64는 Wayland 세션에서 부팅·타이틀·어트랙트까지 60 fps를 확인했다(issue #16).
 
 ```mermaid
 flowchart LR
@@ -101,13 +101,19 @@ REXBOX_DISPLAY=hidden REXBOX_AUDIO=none REXBOX_WATCHDOG=100 REXBOX_D3D8_PROFILE=
 * soft-dirty 페이지 추적이 없어 D3D8이 정점·인덱스 버퍼를 매 프레임 모두 비교한다(정확성은 같다).
 * `/mnt` 아래의 디스크 자산 읽기가 느리다.
 
+## 8. 알려진 제한 (issue #16)
+
+* **X11 세션 및 `SDL_VIDEO_DRIVER=x11` 크래시**: x64와 x86 모두 첫 번째 프레임 제시 직후 게임 메인 스레드(thread 1)가 반환하고, OpenGL 컨텍스트가 바인딩되지 않은 다른 게스트 스레드(thread 3)가 `DrawVerticesUP`를 호출하면서 `libGLdispatch` 내부에서 segmentation fault(`jmp *0x520(%eax)`, `eax=4`)로 비정상 종료된다. Wayland 세션에서 실행한다. ([rexbox #85](https://github.com/reexec/rexbox/issues/85))
+* **NVIDIA Wayland 환경의 x86 화면 미표시**: x86 바이너리를 NVIDIA 드라이버의 Wayland 세션에서 실행하면 `unable to create an EGL window surface (call to eglCreateWindowSurface failed, reporting an error of EGL_SUCCESS)`로 창 서피스가 열리지 않아 화면 표시가 되지 않는다(게임 로직 자체는 60 fps로 어트랙트 데모까지 정상 진행). 32비트 GL/EGL 라이브러리(`libnvidia-gl-595:i386`)가 설치되어 있어도 동일하다. ([rexbox #86](https://github.com/reexec/rexbox/issues/86))
+* **x86 프로세스 SIGTERM 무시**: 해당 x86 실행 프로세스는 SIGTERM으로 정상 종료되지 않아 SIGKILL이 필요했다. ([rexbox #86](https://github.com/reexec/rexbox/issues/86))
+
 ---
 
 # Linux development setup, build and run
 
 Basis: [design i001](../design/20261103-i001-project-bootstrap.md), reCT3's [design i025](https://github.com/reexec/reCT3/blob/main/docs/design/20261025-i025-linux-build.md) and [work log i025](https://github.com/reexec/reCT3/blob/main/docs/work-logs/20261025-i025-linux-build.md), rexbox's [Linux guide](../../third_party/rexbox/docs/guides/linux-setup-and-build.md)
 
-Generates the recompiled code, builds and runs the game on Linux x64 and x86 (-m32). The procedure is carried over from reCT3, where it was checked on a Linux machine (Ubuntu 26.04) and on WSL2 (Ubuntu 24.04). In reEXCEED the x64 and x86 builds, CTest and the app's load stage (without recompiled code) are checked on WSL2 (Ubuntu 24.04, GCC 13); generating and running the game are checked after the boot work. The diagram above shows the steps.
+Generates the recompiled code, builds and runs the game on Linux x64 and x86 (-m32). The procedure is carried over from reCT3. In reEXCEED, generation (about 5 minutes), x64 and x86 Release builds (0 warnings), CTest 7/7, and x64 running through boot, title and attract demo at 60 fps in a Wayland session have been verified on a Linux machine (Ubuntu 26.04.1, GCC 15.2, CMake 4.2.3, NVIDIA RTX 4090 / driver 595.99.02; issue #16). The diagram above shows the steps.
 
 ## 1. Requirements
 
@@ -136,3 +142,9 @@ Run from a directory of your own with the game directory as the argument, as in 
 ## 7. WSL2
 
 The Windows working tree can be used as it is through `/mnt/e/...` (`gen/` and `roms/` shared), with the build tree kept off `/mnt` (9p is slow) through `REEXCEED_BUILD_DIR`, as in the commands above. OpenGL is Mesa llvmpipe, so there is no GPU: the title screen runs at 60 fps, 3D scenes at 46 fps on x64 and less on x86, none of it a real machine's numbers. Without soft-dirty page tracking D3D8 compares every vertex and index buffer each frame (same correctness). Disc asset reads under `/mnt` are slow.
+
+## 8. Known limitations (issue #16)
+
+* **Crash on X11 sessions and `SDL_VIDEO_DRIVER=x11`**: on both x64 and x86, immediately after presenting the first frame, the game main thread (thread 1) returns, and another guest thread (thread 3) without an active OpenGL context calls `DrawVerticesUP`, terminating abnormally with a segmentation fault (`jmp *0x520(%eax)`, `eax=4`) inside `libGLdispatch`. Run in a Wayland session instead. ([rexbox #85](https://github.com/reexec/rexbox/issues/85))
+* **No display on x86 under NVIDIA Wayland**: running the x86 binary under NVIDIA's Wayland session fails to create the window surface with `unable to create an EGL window surface (call to eglCreateWindowSurface failed, reporting an error of EGL_SUCCESS)`, resulting in no visible picture (the game logic itself runs normally up to the attract demo at 60 fps). This occurs even with 32-bit GL/EGL libraries (`libnvidia-gl-595:i386`) installed. ([rexbox #86](https://github.com/reexec/rexbox/issues/86))
+* **x86 process ignores SIGTERM**: the resulting x86 process does not exit cleanly on SIGTERM and required SIGKILL. ([rexbox #86](https://github.com/reexec/rexbox/issues/86))
