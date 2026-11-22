@@ -1,6 +1,6 @@
 // reexceed_decomp_check: runs each decompiled function and the lifted body it
 // replaced (sub_X_gen) from identical guest states and compares what they
-// leave behind: the general registers, g_seh_ebp, XMM0..7, the x87 control
+// leave behind: the general registers, g_seh_ebp, g_eflags, XMM0..7, the x87 control
 // word, stack top and all eight stack slots (bit for bit), and all of guest
 // memory.
 //
@@ -62,6 +62,8 @@ struct GuestState
     uint32_t fpu_top = 0;
     double fpu_slots[8] = {};
     uint32_t seh_ebp = 0;
+    // CF, PF, AF, ZF, SF, IF, DF and OF set, so a flag a function leaves different shows.
+    uint32_t eflags = 0x00000ED7;
 };
 
 struct Case
@@ -89,6 +91,7 @@ Outcome RunFrom(GuestMemory& memory, const std::vector<uint8_t>& initial_memory,
     reexceed_check_set_fpu(initial.control_word, initial.fpu_top);
     reexceed_check_set_fpu_stack(initial.fpu_slots);
     reexceed_check_set_seh_ebp(initial.seh_ebp);
+    reexceed_check_set_eflags(initial.eflags);
     auto fn_wrapper = [](void* ctx) {
         auto fn = reinterpret_cast<GuestFunction>(ctx);
         fn();
@@ -110,6 +113,7 @@ Outcome RunFrom(GuestMemory& memory, const std::vector<uint8_t>& initial_memory,
     reexceed_check_get_fpu(&outcome.state.control_word, &outcome.state.fpu_top);
     reexceed_check_get_fpu_stack(outcome.state.fpu_slots);
     outcome.state.seh_ebp = reexceed_check_get_seh_ebp();
+    outcome.state.eflags = reexceed_check_get_eflags();
     outcome.memory.assign(memory.base(), memory.base() + memory.size());
     return outcome;
 }
@@ -160,6 +164,12 @@ bool Compare(const char* function, const Case& test, const Outcome& decompiled, 
     {
         std::printf("  %s %s: g_seh_ebp decompiled %08X lifted %08X\n", function, test.name.c_str(),
                     decompiled.state.seh_ebp, lifted.state.seh_ebp);
+        same = false;
+    }
+    if (decompiled.state.eflags != lifted.state.eflags)
+    {
+        std::printf("  %s %s: g_eflags decompiled %08X lifted %08X\n", function, test.name.c_str(),
+                    decompiled.state.eflags, lifted.state.eflags);
         same = false;
     }
     if (decompiled.memory != lifted.memory)

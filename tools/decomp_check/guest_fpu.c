@@ -43,3 +43,13 @@ uint32_t reexceed_check_get_seh_ebp(void)
 {
     return g_seh_ebp;
 }
+
+void reexceed_check_set_eflags(uint32_t value)
+{
+    g_eflags = value;
+}
+
+uint32_t reexceed_check_get_eflags(void)
+{
+    return g_eflags;
+}

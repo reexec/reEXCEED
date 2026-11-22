@@ -29,7 +29,7 @@ if(TARGET reexceed_recomp)
         target_compile_options(reexceed_recomp PRIVATE "$<$<CONFIG:Debug>:/Z7>")
         if(REEXCEED_DECOMP_SOURCES)
             # The lifter's header as its authors wrote it: its constant casts
-            # (C4310, upstream xboxrecomp v0.16.0's x87 helpers) are not ours to
+            # (C4310, upstream xboxrecomp's x87 helpers, still in v0.18.0) are not ours to
             # change; rexbox's ABI object turns the same warning off.
             set_source_files_properties(${REEXCEED_DECOMP_SOURCES} PROPERTIES COMPILE_OPTIONS /wd4310)
         endif()
