@@ -255,6 +255,20 @@ void PrintThreadReport(const rexbox::recomp::ThreadReport& report)
 
 }  // namespace
 
+extern "C"
+{
+static void HostYield(void)
+{
+    std::this_thread::yield();
+}
+
+static uint32_t HostMilliseconds(void)
+{
+    const auto now = std::chrono::steady_clock::now().time_since_epoch();
+    return static_cast<uint32_t>(std::chrono::duration_cast<std::chrono::milliseconds>(now).count());
+}
+}
+
 int main(int argc, char** argv)
 {
     // Diagnostics interleave with the guest's output; keep stderr unbuffered even when redirected.
@@ -333,6 +347,9 @@ int main(int argc, char** argv)
     reexceed_host_horizontal_view_scale = &rexbox_d3d8_horizontal_view_scale;
     // XACT's time base: the APU sample counter it reads directly (rexbox #55).
     reexceed_host_apu_sample_count = &rexbox_dsound_apu_sample_count;
+    // Ordering wait for the music loader thread (issue #9).
+    reexceed_host_yield = &HostYield;
+    reexceed_host_milliseconds = &HostMilliseconds;
     reexceed_set_unlock_all(settings.unlock_all ? 1 : 0);
     reexceed_set_autoplay(settings.autoplay ? 1 : 0);
     reexceed_set_full_size_picture(settings.full_size_picture ? 1 : 0);
