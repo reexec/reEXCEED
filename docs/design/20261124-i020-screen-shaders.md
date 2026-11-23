@@ -1,6 +1,6 @@
 # 화면 셰이더 설정 (issue #20)
 
-* 상태: **설계**
+* 상태: **구현됨** (`91d05d9`)
 * 관련 이슈: #20, rexbox #91(기능 자체)
 * 참고: reexec/reDMP1 v0.0.25(#49, 커밋 `b328e9a`): `src/app/main.cpp`, `settings.{h,cpp}`, `settings_ui.{h,cpp}`, `settings_probe.cpp`
 
@@ -50,7 +50,7 @@ flowchart LR
 
 # Screen Shader Setting (issue #20)
 
-* Status: **design**
+* Status: **implemented** (`91d05d9`)
 * Related issues: #20, rexbox #91 (the feature itself)
 * Reference: reexec/reDMP1 v0.0.25 (#49, commit `b328e9a`): `src/app/main.cpp`, `settings.{h,cpp}`, `settings_ui.{h,cpp}`, `settings_probe.cpp`
 
