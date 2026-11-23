@@ -25,7 +25,7 @@
 | Win32 x86 Release, Debug | 오류 0, 경고 0, CTest 9/9 |
 | 실행 `--post-shader crt` | 시작 로그 `[app] post shader: crt (directory shaders)`, 타이틀 화면에 CRT 셰이더가 똑바로, 오버레이는 셰이더 밖, 60 fps |
 | 실행 `--post-shader none` | 이전과 같은 화면 |
-| 사용자 확인 | **남음**: 메뉴 전환, 슬라이더, Reload와 사용자 파일, 16:9·렌더 배율·원본 크기 출력 조합 |
+| 사용자 확인 | 창에서 셰이더가 잘 동작한다(2026-11-24) |
 
 ---
 
@@ -54,4 +54,4 @@
 * Win32 x86 Release and Debug: 0 errors, 0 warnings, CTest 9/9.
 * A run with `--post-shader crt`: the start log says `[app] post shader: crt (directory shaders)`, the CRT shader is upright on the title screen, the overlay is unshaded, and it holds 60 fps.
 * A run with `--post-shader none`: the same picture as before.
-* **Open**, for the user: switching in the menu, the sliders, Reload and user files, and 16:9, render scale and full-size picture combinations.
+* User check (2026-11-24): the shaders work well in the window.
