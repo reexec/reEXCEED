@@ -2,6 +2,7 @@
 
 #include "reexceed/exceed_host.h"
 #include "rexbox/hle/d3d8/d3d8_display.h"
+#include "rexbox/hle/d3d8/d3d8_post_shader.h"
 #include "rexbox/platform/display.h"
 #include "rexbox/platform/input.h"
 #include "rexbox/platform/overlay.h"
@@ -577,6 +578,7 @@ void SettingsUi::DrawGraphicsTab()
                           "(VSync still holds it to the monitor). For benchmarks.");
 
     DrawAntiAliasing();
+    DrawPostShader();
 
     ImGui::SeparatorText("Stats window");
     bool changed = ImGui::Checkbox("FPS", &settings_.show_fps);
@@ -663,6 +665,101 @@ void SettingsUi::DrawAntiAliasing()
     ImGui::SameLine();
     ImGui::TextDisabled("(?)");
     ImGui::SetItemTooltip("Sharper textures at grazing angles (up to %ux on this GPU).", d3d8::MaxAnisotropy());
+}
+
+// Presentation screen shader (docs/design/20261124-i020-screen-shaders.md).
+// Built inside the overlay builder on the presenting thread with the GL context
+// current, so GetPostShaderControl() may be called directly.
+void SettingsUi::DrawPostShader()
+{
+    namespace d3d8 = rexbox::hle::d3d8;
+    ImGui::SeparatorText("Screen shader");
+    d3d8::PostShaderControl* ctrl = d3d8::GetPostShaderControl();
+    if (ctrl == nullptr)
+    {
+        ImGui::BeginDisabled(true);
+        if (ImGui::BeginCombo("Shader", d3d8::kPostShaderNoneId))
+        {
+            ImGui::EndCombo();
+        }
+        ImGui::EndDisabled();
+        ImGui::TextDisabled("Unavailable: display device is not ready.");
+        return;
+    }
+
+    const std::string& active = ctrl->active_id();
+    if (ImGui::BeginCombo("Shader", active.c_str()))
+    {
+        const bool none_selected = (active == d3d8::kPostShaderNoneId);
+        if (ImGui::Selectable(d3d8::kPostShaderNoneId, none_selected))
+        {
+            if (ctrl->Select(d3d8::kPostShaderNoneId))
+            {
+                settings_.post_shader = d3d8::kPostShaderNoneId;
+                Save();
+            }
+        }
+        if (none_selected)
+        {
+            ImGui::SetItemDefaultFocus();
+        }
+        for (const auto& entry : ctrl->catalog())
+        {
+            const bool selected = (active == entry.id);
+            if (ImGui::Selectable(entry.id.c_str(), selected))
+            {
+                if (ctrl->Select(entry.id))
+                {
+                    settings_.post_shader = entry.id;
+                    Save();
+                }
+            }
+            if (selected)
+            {
+                ImGui::SetItemDefaultFocus();
+            }
+        }
+        ImGui::EndCombo();
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("Reload"))
+    {
+        ctrl->Reload();
+    }
+    ImGui::SameLine();
+    ImGui::TextDisabled("(?)");
+    ImGui::SetItemTooltip("Applies a libretro-style GLSL shader (.glsl or .glslp) at presentation.\n"
+                          "Built-ins: crt, scanline, fsr, scalefx, anime4k. User files live in shaders/.");
+
+    if (!ctrl->last_error().empty())
+    {
+        ImGui::TextColored(ImVec4(1.0f, 0.35f, 0.35f, 1.0f), "%s", ctrl->last_error().c_str());
+    }
+
+    auto& params = ctrl->parameters();
+    if (!params.empty())
+    {
+        for (size_t i = 0; i < params.size(); ++i)
+        {
+            auto& param = params[i];
+            ImGui::PushID(static_cast<int>(i));
+            const char* label = param.description.empty() ? param.name.c_str() : param.description.c_str();
+            ImGui::SliderFloat(label, &param.value, param.minimum, param.maximum, "%.3f");
+            ImGui::PopID();
+        }
+        if (ImGui::Button("Reset defaults"))
+        {
+            for (auto& param : params)
+            {
+                param.value = param.initial;
+            }
+        }
+    }
+
+    if (!ctrl->shader_directory().empty())
+    {
+        ImGui::TextDisabled("Files: %s (*.glsl / *.glslp)", ctrl->shader_directory().c_str());
+    }
 }
 
 // Vibration (reJSRF docs/design/20261018-i094-gamepad-vibration.md). The platform

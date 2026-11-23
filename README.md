@@ -35,6 +35,10 @@ cd reEXCEED
 
 인자는 디스크에서 추출한 **게임 디렉터리**입니다. 앱은 그 폴더를 게임의 `D:`로 쓰고 `default.xbe`(디스크의 `DEFAULT.XBE`처럼 대소문자가 달라도 됨)를 읽어 인증서로 식별합니다(`--xbe <파일>`로 다른 XBE). 등록된 북미판이면 실행하고, 아니면 멈춥니다.
 
+### 화면 셰이더 (Screen shader)
+
+설정 메뉴(`Tab`)의 `Graphics` 탭 `Screen shader` 구역에서 표시 단계 후처리 셰이더(`none`, 내장 `crt`·`scanline`·`fsr`·`scalefx`·`anime4k`, 또는 `shaders/` 디렉터리의 `.glsl`/`.glslp` 파일)를 고르고 매개변수 슬라이더·`Reload`를 쓸 수 있습니다. 메뉴에서 고른 값은 `reexceed.ini`의 `[Graphics] PostShader`에 저장되며, 시작 시 `--post-shader <id>` 또는 `REEXCEED_POST_SHADER` 환경 변수로 그 실행에만 덮어쓸 수 있습니다(우선순위: 명령줄 > 환경 변수 > `reexceed.ini` > `none`). 셰이더 작성 규약: [rexbox 화면 셰이더 안내](third_party/rexbox/docs/guides/post-process-shaders.md).
+
 자세한 절차: [Win32 개발 환경 준비와 빌드](docs/guides/win32-setup-and-build.md)
 
 ## 빌드 (Linux)
@@ -93,6 +97,10 @@ See the diagram above. **rexbox** (`third_party/rexbox`, a submodule, v0.0.32) i
 ## Build (Win32)
 
 See the commands above, and [Win32 development setup and build](docs/guides/win32-setup-and-build.md) for the full procedure. The argument is the **game directory** extracted from the disc; the app serves it as the game's `D:`, loads `default.xbe` (in any case, such as the disc's `DEFAULT.XBE`) or the file `--xbe` names, and identifies it by its certificate: the registered North America build runs, anything else stops.
+
+### Screen shaders
+
+In the settings menu (`Tab`), the `Screen shader` section of the `Graphics` tab selects a presentation shader (`none`, the built-ins `crt`, `scanline`, `fsr`, `scalefx` and `anime4k`, or `.glsl`/`.glslp` files in `shaders/`), adjusts `#pragma parameter` sliders and reloads user files. Choices made in the menu are saved to `[Graphics] PostShader` in `reexceed.ini`; `--post-shader <id>` or `REEXCEED_POST_SHADER` overrides the shader for one run without writing to `reexceed.ini` (precedence: command line > environment > `reexceed.ini` > `none`). Authoring guide: [rexbox screen shaders guide](third_party/rexbox/docs/guides/post-process-shaders.md).
 
 ## Build (Linux)
 

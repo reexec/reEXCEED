@@ -13,6 +13,7 @@
 #include "settings_ui.h"
 #include "rexbox/hle/d3d8/d3d8_display.h"
 #include "rexbox/hle/d3d8/d3d8_hle.h"
+#include "rexbox/hle/d3d8/d3d8_post_shader.h"
 #include "rexbox/hle/dsound/dsound_hle.h"
 #include "rexbox/hle/kernel/kernel_exports.h"
 #include "rexbox/hle/kernel/kernel_hle.h"
@@ -104,14 +105,17 @@ struct Options
 {
     std::string game_directory;
     std::string xbe = kDefaultXbe;
+    std::string post_shader;
+    bool has_post_shader = false;
 };
 
 void PrintUsage(const char* program)
 {
     std::fprintf(stderr,
-                 "usage: %s <game directory> [--xbe <file>]\n"
-                 "  <game directory>  the folder extracted from the disc (served as D:)\n"
-                 "  --xbe <file>      the XBE in that folder to load (default: %s)\n",
+                 "usage: %s <game directory> [--xbe <file>] [--post-shader <id>]\n"
+                 "  <game directory>    the folder extracted from the disc (served as D:)\n"
+                 "  --xbe <file>        the XBE in that folder to load (default: %s)\n"
+                 "  --post-shader <id>  screen shader (none, crt, scanline, fsr, scalefx, anime4k, or file)\n",
                  program, kDefaultXbe);
 }
 
@@ -134,6 +138,27 @@ bool ParseArguments(int argc, char** argv, Options* options)
         else if (argument.rfind("--xbe=", 0) == 0)
         {
             options->xbe = argument.substr(6);
+        }
+        else if (argument == "--post-shader")
+        {
+            if (i + 1 >= argc || argv[i + 1][0] == '\0')
+            {
+                std::fprintf(stderr, "error: --post-shader needs a non-empty shader id\n");
+                return false;
+            }
+            options->post_shader = argv[++i];
+            options->has_post_shader = true;
+        }
+        else if (argument.rfind("--post-shader=", 0) == 0)
+        {
+            const std::string value = argument.substr(14);
+            if (value.empty())
+            {
+                std::fprintf(stderr, "error: --post-shader needs a non-empty shader id\n");
+                return false;
+            }
+            options->post_shader = value;
+            options->has_post_shader = true;
         }
         else if (argument.rfind("--", 0) == 0)
         {
@@ -343,6 +368,16 @@ int main(int argc, char** argv)
     display_defaults.smaa = static_cast<rexbox::hle::d3d8::SmaaMode>(settings.smaa);
     display_defaults.anisotropy = settings.anisotropy;
     rexbox::hle::d3d8::SetDisplayDefaults(display_defaults);
+    // Presentation screen shader (docs/design/20261124-i020-screen-shaders.md):
+    // CLI and environment overrides apply for this run without touching reexceed.ini.
+    const std::filesystem::path shader_dir = rexbox::hle::d3d8::ResolvePostShaderDirectory(
+        std::filesystem::path(rexbox::platform::ExecutableDirectory()));
+    const char* env_shader = std::getenv("REEXCEED_POST_SHADER");
+    const std::string chosen_shader = rexbox::hle::d3d8::ChoosePostShader(
+        options.has_post_shader ? &options.post_shader : nullptr, env_shader, &settings.post_shader);
+    rexbox::hle::d3d8::SetPostShaderDirectory(shader_dir);
+    rexbox::hle::d3d8::SetInitialPostShader(chosen_shader);
+    std::fprintf(stderr, "[app] post shader: %s (directory %s)\n", chosen_shader.c_str(), shader_dir.string().c_str());
     // The title's own culling follows the widened picture (reJSRF #97).
     reexceed_host_horizontal_view_scale = &rexbox_d3d8_horizontal_view_scale;
     // XACT's time base: the APU sample counter it reads directly (rexbox #55).
