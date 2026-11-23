@@ -19,7 +19,7 @@ flowchart TD
     RT --> PLAT["rexbox platform: win32, linux (SDL3 + OpenGL)"]
 ```
 
-* **rexbox**(`third_party/rexbox`, submodule, v0.0.32)는 타이틀에 의존하지 않는 재사용 가능한 Xbox 런타임입니다. reJSRF에서 만들어져 분리되었고, reJSRF·reCT3·reEXCEED가 공유합니다.
+* **rexbox**(`third_party/rexbox`, submodule, v0.0.33)는 타이틀에 의존하지 않는 재사용 가능한 Xbox 런타임입니다. reJSRF에서 만들어져 분리되었고, reJSRF·reCT3·reEXCEED가 공유합니다.
 * **game/exceed**는 원본 x86 코드를 C로 옮긴 재컴파일 코드(로컬 생성)와, 그것을 함수 단위로 대체하는 디컴파일 코드, 타이틀 프로파일을 담습니다.
 * **xboxrecomp**(`third_party/xboxrecomp`, submodule)는 upstream 최신 릴리스 v0.16.0입니다. 재컴파일 파이프라인과 lifter ABI 헤더가 여기서 옵니다.
 * 자세한 내용: [ARCHITECTURE.md](ARCHITECTURE.md), [설계 i001](docs/design/20261103-i001-project-bootstrap.md), [프로젝트 헌장](docs/PROJECT_CHARTER.md), [XBE 분석](docs/analysis/exceed-xbe-overview.md)
@@ -34,6 +34,10 @@ cd reEXCEED
 ```
 
 인자는 디스크에서 추출한 **게임 디렉터리**입니다. 앱은 그 폴더를 게임의 `D:`로 쓰고 `default.xbe`(디스크의 `DEFAULT.XBE`처럼 대소문자가 달라도 됨)를 읽어 인증서로 식별합니다(`--xbe <파일>`로 다른 XBE). 등록된 북미판이면 실행하고, 아니면 멈춥니다.
+
+### 화면 셰이더 (Screen shader)
+
+설정 메뉴(`Tab`)의 `Graphics` 탭 `Screen shader` 구역에서 표시 단계 후처리 셰이더(`none`, 내장 `crt`·`scanline`·`fsr`·`scalefx`·`anime4k`, 또는 `shaders/` 디렉터리의 `.glsl`/`.glslp` 파일)를 고르고 매개변수 슬라이더·`Reload`를 쓸 수 있습니다. 메뉴에서 고른 값은 `reexceed.ini`의 `[Graphics] PostShader`에 저장되며, 시작 시 `--post-shader <id>` 또는 `REEXCEED_POST_SHADER` 환경 변수로 그 실행에만 덮어쓸 수 있습니다(우선순위: 명령줄 > 환경 변수 > `reexceed.ini` > `none`). 셰이더 작성 규약: [rexbox 화면 셰이더 안내](third_party/rexbox/docs/guides/post-process-shaders.md).
 
 자세한 절차: [Win32 개발 환경 준비와 빌드](docs/guides/win32-setup-and-build.md)
 
@@ -88,11 +92,15 @@ This repository does not and will not contain the game's executable, its assets,
 
 ## Structure
 
-See the diagram above. **rexbox** (`third_party/rexbox`, a submodule, v0.0.32) is the reusable, title-agnostic Xbox runtime, built in reJSRF and split out for reJSRF, reCT3 and reEXCEED; **game/exceed** holds the recompiled code (the original x86 lifted to C, generated locally), the decompiled code that replaces it function by function, and the title profile; **xboxrecomp** (`third_party/xboxrecomp`, a submodule) is upstream's latest release, v0.16.0, the source of the recompilation pipeline and the lifter ABI header. More: [ARCHITECTURE.md](ARCHITECTURE.md), [design i001](docs/design/20261103-i001-project-bootstrap.md), [project charter](docs/PROJECT_CHARTER.md), [XBE analysis](docs/analysis/exceed-xbe-overview.md).
+See the diagram above. **rexbox** (`third_party/rexbox`, a submodule, v0.0.33) is the reusable, title-agnostic Xbox runtime, built in reJSRF and split out for reJSRF, reCT3 and reEXCEED; **game/exceed** holds the recompiled code (the original x86 lifted to C, generated locally), the decompiled code that replaces it function by function, and the title profile; **xboxrecomp** (`third_party/xboxrecomp`, a submodule) is upstream's latest release, v0.16.0, the source of the recompilation pipeline and the lifter ABI header. More: [ARCHITECTURE.md](ARCHITECTURE.md), [design i001](docs/design/20261103-i001-project-bootstrap.md), [project charter](docs/PROJECT_CHARTER.md), [XBE analysis](docs/analysis/exceed-xbe-overview.md).
 
 ## Build (Win32)
 
 See the commands above, and [Win32 development setup and build](docs/guides/win32-setup-and-build.md) for the full procedure. The argument is the **game directory** extracted from the disc; the app serves it as the game's `D:`, loads `default.xbe` (in any case, such as the disc's `DEFAULT.XBE`) or the file `--xbe` names, and identifies it by its certificate: the registered North America build runs, anything else stops.
+
+### Screen shaders
+
+In the settings menu (`Tab`), the `Screen shader` section of the `Graphics` tab selects a presentation shader (`none`, the built-ins `crt`, `scanline`, `fsr`, `scalefx` and `anime4k`, or `.glsl`/`.glslp` files in `shaders/`), adjusts `#pragma parameter` sliders and reloads user files. Choices made in the menu are saved to `[Graphics] PostShader` in `reexceed.ini`; `--post-shader <id>` or `REEXCEED_POST_SHADER` overrides the shader for one run without writing to `reexceed.ini` (precedence: command line > environment > `reexceed.ini` > `none`). Authoring guide: [rexbox screen shaders guide](third_party/rexbox/docs/guides/post-process-shaders.md).
 
 ## Build (Linux)
 

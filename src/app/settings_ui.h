@@ -66,6 +66,7 @@ private:
     void DrawInfoTab();
     void DrawGraphicsTab();
     void DrawAntiAliasing();
+    void DrawPostShader();
     void DrawInputTab();
     void DrawGameTab();
     void DrawStatsWindow();

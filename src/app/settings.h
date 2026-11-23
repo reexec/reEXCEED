@@ -25,6 +25,8 @@ struct Settings
     uint32_t msaa = 0;        // 0 (off), 2, 4, 8, 16
     uint32_t smaa = 0;        // 0 off, 1 1x
     uint32_t anisotropy = 1;  // 1 (off), 2, 4, 8, 16
+    // Presentation screen shader (docs/design/20261124-i020-screen-shaders.md).
+    std::string post_shader = "none";
     // [Input] (reJSRF docs/design/20261018-i094-gamepad-vibration.md).
     bool vibration = true;
     uint32_t vibration_strength = 100;  // percent, 10..100
@@ -47,6 +49,7 @@ class SettingsFile
 {
 public:
     SettingsFile();
+    explicit SettingsFile(std::string explicit_path);
 
     // Reads the file if there is one; unknown keys and malformed values keep
     // the defaults.

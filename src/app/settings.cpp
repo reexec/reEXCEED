@@ -108,6 +108,8 @@ SettingsFile::SettingsFile()
     }
 }
 
+SettingsFile::SettingsFile(std::string explicit_path) : path_(std::move(explicit_path)) {}
+
 Settings SettingsFile::Load()
 {
     Settings settings;
@@ -211,6 +213,13 @@ Settings SettingsFile::Load()
                 settings.smaa = mode == "1x" ? 1 : 0;
             }
         }
+        else if (key == "postshader")
+        {
+            if (!value.empty())
+            {
+                settings.post_shader = value;
+            }
+        }
         else if (key == "fullscreen")
         {
             ParseBool(value, &settings.fullscreen);
@@ -297,6 +306,8 @@ bool SettingsFile::Save(const Settings& settings)
          << "Msaa = " << settings.msaa << "\n"
          << "Smaa = " << (settings.smaa == 1 ? "1x" : "off") << "\n"
          << "Anisotropy = " << settings.anisotropy << "\n"
+         << "; PostShader: none, crt, scanline, fsr, scalefx, anime4k, or a file in shaders/.\n"
+         << "PostShader = " << (settings.post_shader.empty() ? "none" : settings.post_shader) << "\n"
          << "; The stats window: its sections, and its top-right corner as fractions of the window.\n"
          << "ShowFps = " << flag(settings.show_fps) << "\n"
          << "ShowMemory = " << flag(settings.show_memory) << "\n"

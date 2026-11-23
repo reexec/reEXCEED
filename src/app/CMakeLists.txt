@@ -18,6 +18,12 @@ set_tests_properties(reexceed_rejects_file PROPERTIES PASS_REGULAR_EXPRESSION "i
 add_test(NAME reexceed_rejects_directory_without_xbe COMMAND reexceed "${PROJECT_SOURCE_DIR}/docs")
 set_tests_properties(reexceed_rejects_directory_without_xbe PROPERTIES PASS_REGULAR_EXPRESSION "has no default.xbe")
 
+# Settings round-trip and post-shader precedence check (issue #20).
+add_executable(reexceed_settings_probe settings_probe.cpp settings.cpp)
+target_link_libraries(reexceed_settings_probe PRIVATE rexbox_hle_d3d8 rexbox_platform)
+rexbox_strict_warnings(reexceed_settings_probe)
+add_test(NAME reexceed_settings_probe COMMAND reexceed_settings_probe)
+
 if(MSVC)
     # Guest threads get their 64 MiB host stacks explicitly (CreateHostThread);
     # the image default stays small because every other thread in the process
