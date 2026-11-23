@@ -43,6 +43,19 @@ int reexceed_host_full_size_picture(void);
 // Implemented in decomp/full_size_picture.c when recompiled code is present.
 void reexceed_decomp_sync_full_size_picture(void);
 
+// Host yield for ordering adapters that wait on another guest thread
+// (decomp/music_loader_order.c, issue #9). Null: do nothing.
+extern void (*reexceed_host_yield)(void);
+
+// Monotonic host clock in milliseconds, for wait caps in host adapters
+// (decomp/music_loader_order.c, issue #9). Null: fall back to a yield-count cap.
+extern uint32_t (*reexceed_host_milliseconds)(void);
+
+// Implemented in decomp/music_loader_order.c when recompiled code is present:
+// replaces the lifted body sub_0007DFD0_gen for tools/decomp_check; null
+// restores sub_0007DFD0_gen.
+void reexceed_decomp_set_music_loader_body(void (*body)(void));
+
 #ifdef __cplusplus
 }
 #endif

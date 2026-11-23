@@ -16,6 +16,10 @@ void reexceed_check_set_fpu_stack(const double slots[8]);
 void reexceed_check_get_fpu_stack(double slots[8]);
 void reexceed_check_set_seh_ebp(uint32_t value);
 uint32_t reexceed_check_get_seh_ebp(void);
+// The lifted code's EFLAGS image (g_eflags), which a function publishes at
+// ret when a caller reads flags after the call (xboxrecomp #311).
+void reexceed_check_set_eflags(uint32_t value);
+uint32_t reexceed_check_get_eflags(void);
 
 #ifdef __cplusplus
 }

@@ -261,6 +261,8 @@ void sub_00038D60(void)
     do
     {
         g_eax = g_edi;
+        g_ebp = ebp; /* the frame stays current across calls (xboxrecomp #280) */
+        g_seh_ebp = ebp;
         PUSH32(g_esp, 0x00038D77u);
         RECOMP_ABI_CALL(0x00038CE0u, sub_00038CE0);
         if (LO8(g_eax) != 0)
@@ -275,6 +277,8 @@ void sub_00038D60(void)
                 g_esi = MEM32(0x00848670u);
                 PUSH32(g_esp, g_edi);
                 g_ecx = 3;
+                g_ebp = ebp;
+                g_seh_ebp = ebp;
                 PUSH32(g_esp, 0x00038DA6u);
                 RECOMP_ABI_CALL(0x000369F0u, sub_000369F0);
             }
@@ -299,5 +303,10 @@ void sub_00038D60(void)
     POP32(g_esp, g_edi);
     POP32(g_esp, g_esi);
     POP32(g_esp, ebp);
+    /* Callers read CF after the call: the flags of the loop's last
+     * `cmp edi, 0xB` (edi == 11): ZF and PF set, CF, SF and OF clear. */
+    g_eflags = (g_eflags & ~0x8C5u) | 0x44u;
+    g_ebp = ebp;
+    g_seh_ebp = ebp;
     g_esp += 8u; /* ret 4 */
 }

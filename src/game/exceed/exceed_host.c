@@ -5,6 +5,8 @@
 
 float (*reexceed_host_horizontal_view_scale)(void) = 0;
 uint32_t (*reexceed_host_apu_sample_count)(void) = 0;
+void (*reexceed_host_yield)(void) = 0;
+uint32_t (*reexceed_host_milliseconds)(void) = 0;
 
 static volatile int s_unlock_all = 0;
 static volatile int s_autoplay = 0;

@@ -1,6 +1,6 @@
 // reexceed_decomp_check: runs each decompiled function and the lifted body it
 // replaced (sub_X_gen) from identical guest states and compares what they
-// leave behind: the general registers, g_seh_ebp, XMM0..7, the x87 control
+// leave behind: the general registers, g_seh_ebp, g_eflags, XMM0..7, the x87 control
 // word, stack top and all eight stack slots (bit for bit), and all of guest
 // memory.
 //
@@ -29,6 +29,7 @@ extern "C" void sub_00038D60(void);
 extern "C" void sub_00038D60_gen(void);
 extern "C" void sub_00075F10(void);
 extern "C" void sub_00075F10_gen(void);
+extern "C" void sub_0007DFD0(void);
 
 namespace
 {
@@ -62,6 +63,8 @@ struct GuestState
     uint32_t fpu_top = 0;
     double fpu_slots[8] = {};
     uint32_t seh_ebp = 0;
+    // CF, PF, AF, ZF, SF, IF, DF and OF set, so a flag a function leaves different shows.
+    uint32_t eflags = 0x00000ED7;
 };
 
 struct Case
@@ -89,6 +92,7 @@ Outcome RunFrom(GuestMemory& memory, const std::vector<uint8_t>& initial_memory,
     reexceed_check_set_fpu(initial.control_word, initial.fpu_top);
     reexceed_check_set_fpu_stack(initial.fpu_slots);
     reexceed_check_set_seh_ebp(initial.seh_ebp);
+    reexceed_check_set_eflags(initial.eflags);
     auto fn_wrapper = [](void* ctx) {
         auto fn = reinterpret_cast<GuestFunction>(ctx);
         fn();
@@ -110,6 +114,7 @@ Outcome RunFrom(GuestMemory& memory, const std::vector<uint8_t>& initial_memory,
     reexceed_check_get_fpu(&outcome.state.control_word, &outcome.state.fpu_top);
     reexceed_check_get_fpu_stack(outcome.state.fpu_slots);
     outcome.state.seh_ebp = reexceed_check_get_seh_ebp();
+    outcome.state.eflags = reexceed_check_get_eflags();
     outcome.memory.assign(memory.base(), memory.base() + memory.size());
     return outcome;
 }
@@ -160,6 +165,12 @@ bool Compare(const char* function, const Case& test, const Outcome& decompiled, 
     {
         std::printf("  %s %s: g_seh_ebp decompiled %08X lifted %08X\n", function, test.name.c_str(),
                     decompiled.state.seh_ebp, lifted.state.seh_ebp);
+        same = false;
+    }
+    if (decompiled.state.eflags != lifted.state.eflags)
+    {
+        std::printf("  %s %s: g_eflags decompiled %08X lifted %08X\n", function, test.name.c_str(),
+                    decompiled.state.eflags, lifted.state.eflags);
         same = false;
     }
     if (decompiled.memory != lifted.memory)
@@ -649,6 +660,93 @@ bool TestAutoplay(GuestMemory& memory)
     return ok;
 }
 
+struct MusicLoaderMock
+{
+    GuestMemory* memory = nullptr;
+    uint32_t now_ms = 0;
+    uint32_t yields = 0;
+    uint32_t body_calls = 0;
+    uint32_t flip_flag_at_yield = 0;
+};
+
+MusicLoaderMock g_music_loader_mock;
+
+extern "C"
+{
+static void MockMusicLoaderBody(void)
+{
+    ++g_music_loader_mock.body_calls;
+}
+
+static void MockMusicLoaderYield(void)
+{
+    ++g_music_loader_mock.yields;
+    ++g_music_loader_mock.now_ms;
+    if (g_music_loader_mock.flip_flag_at_yield != 0 &&
+        g_music_loader_mock.yields == g_music_loader_mock.flip_flag_at_yield)
+    {
+        *reinterpret_cast<uint8_t*>(g_music_loader_mock.memory->Translate(0x00843550u)) = 1;
+    }
+}
+
+static uint32_t MockMusicLoaderMilliseconds(void)
+{
+    return g_music_loader_mock.now_ms;
+}
+}
+
+bool TestMusicLoaderOrder(GuestMemory& memory)
+{
+    bool ok = true;
+    constexpr GuestAddress kLoadingFlagAddr = 0x00843550u;
+
+    void (*saved_yield)(void) = reexceed_host_yield;
+    uint32_t (*saved_ms)(void) = reexceed_host_milliseconds;
+
+    reexceed_host_yield = &MockMusicLoaderYield;
+    reexceed_host_milliseconds = &MockMusicLoaderMilliseconds;
+    reexceed_decomp_set_music_loader_body(&MockMusicLoaderBody);
+
+    // Case 1: flag is already 1 -> body is called immediately without yielding.
+    std::memset(memory.base(), 0, memory.size());
+    *reinterpret_cast<uint8_t*>(memory.Translate(kLoadingFlagAddr)) = 1;
+    g_music_loader_mock = {&memory, 1000u, 0u, 0u, 0u};
+    sub_0007DFD0();
+    if (g_music_loader_mock.body_calls != 1u || g_music_loader_mock.yields != 0u)
+    {
+        std::printf("FAIL: flag=1 expected body_calls=1 yields=0, got body_calls=%u yields=%u\n",
+                    g_music_loader_mock.body_calls, g_music_loader_mock.yields);
+        ok = false;
+    }
+
+    // Case 2: flag stays 0 -> waits until the 100 ms cap, then calls the body.
+    *reinterpret_cast<uint8_t*>(memory.Translate(kLoadingFlagAddr)) = 0;
+    g_music_loader_mock = {&memory, 2000u, 0u, 0u, 0u};
+    sub_0007DFD0();
+    if (g_music_loader_mock.body_calls != 1u || g_music_loader_mock.yields != 100u)
+    {
+        std::printf("FAIL: flag=0 cap expected body_calls=1 yields=100, got body_calls=%u yields=%u\n",
+                    g_music_loader_mock.body_calls, g_music_loader_mock.yields);
+        ok = false;
+    }
+
+    // Case 3: flag starts at 0 and turns 1 on yield #3 -> stops waiting at once.
+    *reinterpret_cast<uint8_t*>(memory.Translate(kLoadingFlagAddr)) = 0;
+    g_music_loader_mock = {&memory, 3000u, 0u, 0u, 3u};
+    sub_0007DFD0();
+    if (g_music_loader_mock.body_calls != 1u || g_music_loader_mock.yields != 3u)
+    {
+        std::printf("FAIL: flag=0->1 expected body_calls=1 yields=3, got body_calls=%u yields=%u\n",
+                    g_music_loader_mock.body_calls, g_music_loader_mock.yields);
+        ok = false;
+    }
+
+    reexceed_decomp_set_music_loader_body(nullptr);
+    reexceed_host_yield = saved_yield;
+    reexceed_host_milliseconds = saved_ms;
+    return ok;
+}
+
 }  // namespace
 
 int main()
@@ -718,6 +816,16 @@ int main()
     else
     {
         std::printf("TestFullSizePicture passed!\n");
+    }
+
+    if (!TestMusicLoaderOrder(memory))
+    {
+        std::printf("TestMusicLoaderOrder failed!\n");
+        failures++;
+    }
+    else
+    {
+        std::printf("TestMusicLoaderOrder passed!\n");
     }
 
     return failures == 0 ? 0 : 1;

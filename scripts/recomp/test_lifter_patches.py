@@ -1,15 +1,16 @@
 #!/usr/bin/env python3
-"""Self-check for lifter_patches.py (issue #6).
+"""Self-check for lifter_patches.py and the lifter forms it once fixed.
 
 Run: py -3 scripts/recomp/test_lifter_patches.py
 
-1. Regression guard: everything the patches do not target (the 32-bit
-   one-operand forms, the two- and three-operand imul, div and idiv) lifts to
-   exactly the text upstream v0.16.0 emits.
+1. Regression guard: the forms listed in UNCHANGED (no patch targets them)
+   lift to exactly the text the pinned upstream emits.
 2. The narrow one-operand products, compiled, match the x86 rules for a set
    of register values: `imul/mul r/m8` writes AX only, `imul/mul r/m16` writes
-   AX and DX only. Needs a C compiler (cl, clang or gcc on PATH, or MSVC found
-   through vswhere); without one this part is reported as skipped.
+   AX and DX only. Issue #6 patched these; upstream #277 (v0.17.0) fixed them,
+   and this keeps checking that a later upstream does too (issue #18). Needs a
+   C compiler (cl, clang or gcc on PATH, or MSVC found through vswhere);
+   without one this part is reported as skipped.
 """
 
 import os
@@ -153,7 +154,7 @@ def check_narrow():
             "#define HI8(r) ((uint32_t)(((r) >> 8) & 0xFFu))",
             "#define LO16(r) ((uint32_t)((r) & 0xFFFFu))",
             "#define SET_LO16(r, v) ((r) = ((r) & 0xFFFF0000u) | ((uint32_t)(uint16_t)(v)))",
-            "static uint32_t eax, ebx, ecx, edx; static int _cf;"]
+            "static uint32_t eax, ebx, ecx, edx, _fa; static int _cf;"]
     for index, (m, operand, _, width, signed) in enumerate(NARROW):
         lines = _lift(m, [_reg(operand)])
         if any("edx =" in line or "eax =" in line for line in lines):
